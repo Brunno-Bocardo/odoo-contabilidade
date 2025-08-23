@@ -1,8 +1,7 @@
-version: '3'
 services:
     odoo:
         container_name: odoo
-        image: odoo:latest
+        image: odoo:17
         restart: always
         volumes:
             - ./addons:/mnt/extra-addons/:rw
@@ -41,7 +40,7 @@ services:
           - odoo_network
 
     db:
-      image: postgres:13
+      image: postgres:16
       restart: always
       container_name: postgresql
       environment:
