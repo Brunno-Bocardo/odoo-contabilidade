@@ -1,0 +1,9 @@
+<odoo>
+
+    <!-- Menu principal -->
+    <menuitem id="menu_contabilidade_root" name="Contabilidade" sequence="10" web_icon="contabilidade,static/description/icon.png"/>
+
+    <!-- Submenu Contas -->
+    <menuitem id="menu_contabilidade_contas" name="Contas" parent="menu_contabilidade_root" action="action_contabilidade_contas" sequence="10"/>
+
+</odoo>

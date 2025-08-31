@@ -41,6 +41,10 @@ http://localhost/web/login
 	```bash
 	docker ps
 	```
+- **Atualizar um módulo:**
+	``` bash
+	docker compose run --rm odoo odoo -c /etc/odoo/odoo.conf -u <MODULE_NAME> -d <DATA_BASE_NAME> --xmlrpc-port=9999 --db_host=db --db_user=odoo --db_pass=odoo --stop-after-init
+	```
 
 ## 6. Dicas úteis
 

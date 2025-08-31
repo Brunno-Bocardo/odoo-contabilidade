@@ -1,0 +1,41 @@
+<odoo>
+    <!-- Action -->
+    <record id="action_contabilidade_contas" model="ir.actions.act_window">
+        <field name="name">Contas</field>
+        <field name="res_model">contabilidade.contas</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    
+    <!-- Visão Lista -->
+    <record id="view_contabilidade_contas_tree" model="ir.ui.view">
+        <field name="name">contabilidade.contas.tree</field>
+        <field name="model">contabilidade.contas</field>
+        <field name="arch" type="xml">
+            <tree string="Contas">
+                <field name="nome_codigo" string="Conta"/>
+                <field name="grupo_contabil"/>
+                <field name="subgrupo1"/>
+                <field name="subgrupo2"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Visão Formulário -->
+    <record id="view_contabilidade_contas_form" model="ir.ui.view">
+        <field name="name">contabilidade.contas.form</field>
+        <field name="model">contabilidade.contas</field>
+        <field name="arch" type="xml">
+            <form string="Conta">
+                <sheet>
+                    <group>
+                        <field name="nome"/>
+                        <field name="codigo"/>
+                        <field name="grupo_contabil"/>
+                        <field name="subgrupo1" invisible="grupo_contabil != 'ativo' and grupo_contabil != 'passivo'" required="grupo_contabil == 'ativo' or grupo_contabil == 'passivo'"/>
+                        <field name="subgrupo2" invisible="subgrupo1 != 'nao_circulante'" required="subgrupo1 == 'nao_circulante'"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>
