@@ -9,26 +9,23 @@ class ContabilidadeContas(models.Model):
     nome_codigo = fields.Char(string="Conta + Código", required=True)
 
     grupo_contabil = fields.Selection([
-        ('ativo', 'Ativo'),
-        ('passivo', 'Passivo'),
-        ('patrimonio', 'Patrimônio Líquido'),
-        ('despesa', 'Despesa'),
-        ('apuracao', 'Apuração do Resultado'),
-    ], string="Grupo Contábil", required=True)
-
-    subgrupo1 = fields.Selection([
         ('circulante', 'Ativo Circulante'),
         ('nao_circulante', 'Ativo Não Circulante'),
         ('passivo_circulante', 'Passivo Circulante'),
         ('passivo_nao_circulante', 'Passivo Não Circulante'),
-    ], string="Subgrupo 1")
+        ('patrimonio', 'Patrimônio Líquido'),
+        ('despesa', 'Despesa'),
+        ('apuracao', 'Apuração do Resultado'),
+        ('receitas', 'Receitas'),
+        
+    ], string="Grupo Contábil", required=True)
 
-    subgrupo2 = fields.Selection([
+    subgrupo1 = fields.Selection([
         ('realizavel', 'Realizável a longo Prazo'),
         ('investimentos', 'Investimentos'),
         ('imobilizado', 'Imobilizado'),
         ('intangivel', 'Intangível'),
-    ], string="Subgrupo 2")
+    ], string="Subgrupo 1")
 
 
     def create(self, vals):

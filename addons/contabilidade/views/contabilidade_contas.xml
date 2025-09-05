@@ -15,7 +15,6 @@
                 <field name="nome_codigo" string="Conta"/>
                 <field name="grupo_contabil"/>
                 <field name="subgrupo1"/>
-                <field name="subgrupo2"/>
             </tree>
         </field>
     </record>
@@ -31,8 +30,7 @@
                         <field name="nome"/>
                         <field name="codigo"/>
                         <field name="grupo_contabil"/>
-                        <field name="subgrupo1" invisible="grupo_contabil != 'ativo' and grupo_contabil != 'passivo'" required="grupo_contabil == 'ativo' or grupo_contabil == 'passivo'"/>
-                        <field name="subgrupo2" invisible="subgrupo1 != 'nao_circulante'" required="subgrupo1 == 'nao_circulante'"/>
+                        <field name="subgrupo1" invisible="grupo_contabil != 'nao_circulante'" required="grupo_contabil == 'nao_circulante'" widget="selection_badge"/>
                     </group>
                 </sheet>
             </form>

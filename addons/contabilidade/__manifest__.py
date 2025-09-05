@@ -15,7 +15,7 @@
     ],
     'contributors': [
         'Brunno Bocardo <brunno.b@aluno.ifsp.edu.br>',
-        'Mariana Lima <mariana.l@aluno.ifsp.edu.br>' # TODO: confirmar email
+        'Mariana Lima <lima.mariana1@aluno.ifsp.edu.br>'
     ],
 
     'installable': True,
