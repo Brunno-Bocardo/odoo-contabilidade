@@ -11,6 +11,7 @@
     'data': [
         'security/ir.model.access.csv',
         'views/contabilidade_contas.xml',
+        'views/contabilidade_livro_diario.xml',
         'views/menus.xml',
     ],
     'contributors': [

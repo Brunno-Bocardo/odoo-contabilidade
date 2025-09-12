@@ -1,0 +1,35 @@
+
+<odoo>
+    <!-- Action -->
+    <record id="action_contabilidade_livro_diario" model="ir.actions.act_window">
+        <field name="name">Livro Diário</field>
+        <field name="res_model">contabilidade.livro.diario</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Visão Lista -->
+    <record id="view_contabilidade_livro_diario_tree" model="ir.ui.view">
+        <field name="name">contabilidade.livro.diario.tree</field>
+        <field name="model">contabilidade.livro.diario</field>
+        <field name="arch" type="xml">
+            <tree string="Livro Diário">
+                <field name="nome"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Visão Formulário -->
+    <record id="view_contabilidade_livro_diario_form" model="ir.ui.view">
+        <field name="name">contabilidade.livro.diario.form</field>
+        <field name="model">contabilidade.livro.diario</field>
+        <field name="arch" type="xml">
+            <form string="Livro Diário">
+                <sheet>
+                    <group>
+                        <field name="nome"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

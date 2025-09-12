@@ -1,9 +1,13 @@
-<odoo>
+<odoo>   
+<!-- Menu Contas -->
+<menuitem id="menu_contabilidade_root" name="Contas" sequence="10" web_icon="contabilidade,static/description/icon.png"/>
+    <!-- Submenu Contas Setup -->
+    <menuitem id="menu_contabilidade_contas" name="Contas Setup" parent="menu_contabilidade_root" action="action_contabilidade_contas" sequence="10"/>
 
-    <!-- Menu principal -->
-    <menuitem id="menu_contabilidade_root" name="Contabilidade" sequence="10" web_icon="contabilidade,static/description/icon.png"/>
+<!-- Menu Livro Diário -->
+<menuitem id="menu_livro_diario_root" name="Livro Diario" sequence="15" web_icon="contabilidade,static/description/livrodiariofoto.png"/>
+    <!-- Submenu Livro Diário -->
+    <menuitem id="menu_livro_diario" name="Livro Diario" parent="menu_livro_diario_root" action="action_contabilidade_livro_diario" sequence="15"/>
 
-    <!-- Submenu Contas -->
-    <menuitem id="menu_contabilidade_contas" name="Contas" parent="menu_contabilidade_root" action="action_contabilidade_contas" sequence="10"/>
 
 </odoo>
