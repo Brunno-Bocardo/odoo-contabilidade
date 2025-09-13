@@ -4,9 +4,10 @@ class ContabilidadeContas(models.Model):
     _name = "contabilidade.contas"
     _description = "Contabilidade Contas"
 
-    nome = fields.Char(string="Conta", required=True)
+    name = fields.Char(string="Conta + Código", required=True)
+    conta = fields.Char(string="Conta", required=True)
     codigo = fields.Char(string="Código", required=True)
-    nome_codigo = fields.Char(string="Conta + Código", required=True)
+    descricao = fields.Text(string="Descrição")
 
     grupo_contabil = fields.Selection([
         ('circulante', 'Ativo Circulante'),
@@ -28,11 +29,13 @@ class ContabilidadeContas(models.Model):
     ], string="Subgrupo 1")
 
 
+    # TODO: Incluir a lógica de escrever o código automaticamente
+
     def create(self, vals):
-        vals['nome_codigo'] = f"{vals.get('codigo')} - {vals.get('nome')}"
+        vals['name'] = f"{vals.get('codigo')} - {vals.get('conta')}"
         return super(ContabilidadeContas, self).create(vals)
     
     def write(self, vals):
-        if 'codigo' in vals or 'nome' in vals:
-            vals['nome_codigo'] = f"{vals.get('codigo')} - {vals.get('nome')}"
+        if 'codigo' in vals or 'conta' in vals:
+            vals['name'] = f"{vals.get('codigo')} - {vals.get('conta')}"
         return super(ContabilidadeContas, self).write(vals)

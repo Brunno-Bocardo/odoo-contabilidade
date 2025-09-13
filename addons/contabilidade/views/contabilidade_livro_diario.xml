@@ -12,8 +12,18 @@
         <field name="name">contabilidade.livro.diario.tree</field>
         <field name="model">contabilidade.livro.diario</field>
         <field name="arch" type="xml">
-            <tree string="Livro Diário">
-                <field name="nome"/>
+            <!-- colocando o atributo editable="bottom" na tag tree para permitir edição rápida
+            isso impede o acesso imediato ao formulário ao clicar na linha
+            por isso, incluí um botão para acessar o formulário - o que requiriu a criação do método action_open_form no modelo -->
+            <tree string="Livro Diário" editable="bottom">
+                <field name="data"/>
+                <field name="descricao"/>
+                <field name="conta_credito_id"/>
+                <field name="conta_debito_id"/>
+                <field name="valor" widget="monetary"/>
+                <field name="currency_id" invisible="1" column_invisible="1"/>
+                <!-- botão para acessar o formulário -->
+                <button name="action_open_form" type="object" icon="fa-eye" class="btn btn-outline-primary"/>
             </tree>
         </field>
     </record>
@@ -26,7 +36,17 @@
             <form string="Livro Diário">
                 <sheet>
                     <group>
-                        <field name="nome"/>
+                        <group>
+                            <field name="data"/>
+                            <field name="conta_credito_id"/>
+                            <field name="conta_debito_id"/>
+                        </group>
+
+                        <group>
+                            <field name="valor" widget="monetary"/>
+                            <field name="descricao"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
                     </group>
                 </sheet>
             </form>
