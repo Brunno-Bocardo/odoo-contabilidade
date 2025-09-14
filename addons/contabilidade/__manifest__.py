@@ -12,6 +12,7 @@
         'security/ir.model.access.csv',
         'views/contabilidade_contas.xml',
         'views/contabilidade_livro_diario.xml',
+        'views/contabilidade_livro_razao.xml',
         'views/menus.xml',
     ],
     'contributors': [

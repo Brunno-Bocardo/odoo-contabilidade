@@ -10,9 +10,10 @@
         <!-- Submenu Livro Diário -->
         <menuitem id="menu_livro_diario" name="Livro Diário" parent="menu_livro_diario_root" action="action_contabilidade_livro_diario" sequence="15"/>
 
-
     <!-- Menu Livro Razão -->
-
+    <menuitem id="menu_livro_razao_root" name="Livro Razão" sequence="20" web_icon="contabilidade,static/description/livrorazaofoto.png"/>
+        <!-- Submenu Livro Razão -->
+        <menuitem id="menu_livro_razao" name="Livro Razão" parent="menu_livro_razao_root" action="action_contabilidade_livro_razao" sequence="20"/>
 
 
     <!-- Menu Balanço Patrimonial -->
@@ -27,6 +28,5 @@
     <record id="base.menu_management" model="ir.ui.menu">
       <field name="groups_id" eval="[(6, 0, [ref('base.group_system')])]"/>
     </record>
-
 
 </odoo>
