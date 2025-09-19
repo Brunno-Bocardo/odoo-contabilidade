@@ -20,22 +20,33 @@
                             <field name="conta_id" required="1"/>
                             <field name="currency_id" invisible="1"/>
                         </group>
-                        <group string="Saldos">
-                            <field name="saldo_inicial" widget="monetary" readonly="1"/>
-                            <field name="total_debito"  widget="monetary" readonly="1"/>
-                            <field name="total_credito" widget="monetary" readonly="1"/>
-                            <field name="saldo_final"   widget="monetary" readonly="1"/>
-                        </group>
-                    </group>
 
+                        <group string="Saldos">
+                            
+                        </group>
+                        <group> 
+                        
+                        </group>
+                        <div style="display: flex; gap: 5px;">
+
+                                <group> 
+                                    <field name="saldo_inicial" widget="monetary" readonly="1"/>
+                                    <field name="total_debito"  widget="monetary" readonly="1"/>
+                                    <field name="total_credito" widget="monetary" readonly="1"/>  
+                                    <field name="saldo_final" string="Saldo Final"  widget="monetary" readonly="1"/>
+                                </group>
+                                <p invisible="total_credito > total_debito or conta_id== False">D</p>
+                                <p invisible="total_debito > total_credito or conta_id== False">C</p>
+
+                        </div>             
+                    </group>
+                       
                     <separator string="Lançamentos" colspan="4" invisible="conta_id == False"/>
                     <div class="o_full_width" invisible="conta_id == False">
                         <field name="line_ids" nolabel="1">
                             <tree create="0" edit="0" delete="0">
                                 <field name="data"/>
                                 <field name="descricao"/>
-                                <field name="conta_debito_id"/>
-                                <field name="conta_credito_id"/>
                                 <field name="debito"  widget="monetary"/>
                                 <field name="credito" widget="monetary"/>
                                 <field name="diario_id" invisible="1" column_invisible="1"/>

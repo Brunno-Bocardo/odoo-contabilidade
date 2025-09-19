@@ -18,8 +18,8 @@
             <tree string="Livro Diário" editable="bottom">
                 <field name="data"/>
                 <field name="descricao"/>
-                <field name="conta_credito_id"/>
                 <field name="conta_debito_id"/>
+                <field name="conta_credito_id"/>
                 <field name="valor" widget="monetary"/>
                 <field name="currency_id" invisible="1" column_invisible="1"/>
                 <!-- botão para acessar o formulário -->
