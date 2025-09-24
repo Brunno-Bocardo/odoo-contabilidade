@@ -21,24 +21,12 @@
                             <field name="currency_id" invisible="1"/>
                         </group>
 
-                        <group string="Saldos">
-                            
+                        <group string="Saldos"> 
+                            <field name="saldo_inicial" widget="monetary" readonly="1"/>
+                            <field name="total_debito"  widget="monetary" readonly="1"/>
+                            <field name="total_credito" widget="monetary" readonly="1"/>  
+                            <field name="saldo_final" readonly="1"/>
                         </group>
-                        <group> 
-                        
-                        </group>
-                        <div style="display: flex; gap: 5px;">
-
-                                <group> 
-                                    <field name="saldo_inicial" widget="monetary" readonly="1"/>
-                                    <field name="total_debito"  widget="monetary" readonly="1"/>
-                                    <field name="total_credito" widget="monetary" readonly="1"/>  
-                                    <field name="saldo_final" string="Saldo Final"  widget="monetary" readonly="1"/>
-                                </group>
-                                <p invisible="total_credito > total_debito or conta_id== False">D</p>
-                                <p invisible="total_debito > total_credito or conta_id== False">C</p>
-
-                        </div>             
                     </group>
                        
                     <separator string="Lançamentos" colspan="4" invisible="conta_id == False"/>
