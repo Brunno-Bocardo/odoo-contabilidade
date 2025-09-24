@@ -7,6 +7,7 @@
         'base',
         'web_responsive',
         'muk_web_appsbar',
+        'muk_web_colors'
     ],
     "assets": {
         "web.assets_backend": [
