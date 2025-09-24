@@ -8,6 +8,11 @@
         'web_responsive',
         'muk_web_appsbar',
     ],
+    "assets": {
+        "web.assets_backend": [
+            # "contabilidade/static/src/scss/dark_theme.scss",
+        ],
+    },
     'data': [
         'security/ir.model.access.csv',
         'views/contabilidade_contas.xml',

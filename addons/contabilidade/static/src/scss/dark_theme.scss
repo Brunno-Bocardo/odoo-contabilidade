@@ -1,0 +1,90 @@
+/* ================= NAVBAR PADRÃO ODOO ================= */
+$o-brand-cor: #2a2a2a !default;
+
+.o_main_navbar {
+    background-color: #1A1A1A !important;
+    color: #ffffff !important;
+    font-family: 'Montserrat', sans-serif !important;
+    font-weight: bold !important; 
+}
+
+.o_main_navbar .dropdown-toggle,
+.o_main_navbar .o_menu_toggle {
+    color: #ffffff !important;
+    font-weight: bold !important;
+}
+
+.o_main_navbar a:hover {
+    background-color: #333333 !important;
+    color: #ffffff !important;
+}
+
+.o_app.active {
+    background-color: $o-brand-cor !important;
+    color: #ffffff !important;
+    font-weight: bold !important;
+}
+
+.o_app:hover {
+    background-color: #333333 !important;
+    color: #ffffff !important;
+}
+/* ================= CONTEÚDO CENTRAL ================= */
+.o_action_manager,
+.o_content,
+.o_form_view,
+.o_list_view,
+.o_kanban_view,
+.o_form_sheet_bg,
+.o_form_sheet {
+    background-color: #1A1A1A !important;
+    color: #ffffff !important;
+}
+
+/* Campos de formulários */
+.o_field_widget input,
+.o_field_widget textarea,
+.o_input,
+textarea {
+    background-color: #1A1A1A !important;
+    color: #ffffff !important;
+    border: 1px solid #444444 !important;
+    font-weight: normal !important;
+}
+
+.o_field_widget input:focus,
+.o_input:focus {
+    border-color: #1A1A1A !important; /* verde só no foco */
+}
+
+/* ================= BOTÕES ================= */
+.btn-primary {
+    background-color: #006400 !important; /* verde escuro */
+    border-color: #006400 !important;
+    color: #ffffff !important;
+    font-weight: bold !important;
+}
+.btn-primary:hover {
+    background-color: #32CD32 !important; /* verde claro */
+    border-color: #32CD32 !important;
+    color: #1A1A1A !important;
+}
+
+.btn-secondary {
+    background-color: #1A1A1A !important;
+    border-color: #444444 !important;
+    color: #ffffff !important;
+}
+.btn-secondary:hover {
+    background-color: #333333 !important;
+    color: #ffffff !important;
+}
+
+/* ================= LINKS ================= */
+a {
+    color: #ffffff !important; /* por padrão, branco */
+    font-weight: normal !important;
+}
+a:hover {
+    color: #32CD32 !important; /* verde só no hover */
+}
