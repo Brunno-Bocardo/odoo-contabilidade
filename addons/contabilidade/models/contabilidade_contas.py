@@ -56,7 +56,7 @@ class ContabilidadeContas(models.Model):
                 subgrupo1 = vals.get('subgrupo1')
                 if not subgrupo1:
                     raise ValueError("Selecione um subgrupo para Ativo Não Circulante.")
-                digito_meio = subgrupo_map[subgrupo]
+                digito_meio = subgrupo_map[subgrupo1]
 
                 ultima = self.search([
                     ('grupo_contabil', '=', 'nao_circulante'),

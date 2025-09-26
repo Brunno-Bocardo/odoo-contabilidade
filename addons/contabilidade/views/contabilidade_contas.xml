@@ -27,8 +27,9 @@
             <form string="Conta">
                 <sheet>
                     <group>
-                        <field name="conta"/>
-                        <field name="codigo"/>
+                        <field name="name" invisible="id == False" string="Conta" placeholder="Ex: Banco, Fornecedores..."/>
+                        <field name="conta" invisible="id != False"/>
+                        <field name="codigo" invisible="1"/>
                         <field name="grupo_contabil"/>
                         <field name="subgrupo1" invisible="grupo_contabil != 'nao_circulante'" required="grupo_contabil == 'nao_circulante'" widget="selection_badge"/>
                         <field name="descricao"/>
