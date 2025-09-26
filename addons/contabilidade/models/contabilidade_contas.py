@@ -27,7 +27,7 @@ class ContabilidadeContas(models.Model):
         ('investimentos', 'Investimentos'),
         ('imobilizado', 'Imobilizado'),
         ('intangivel', 'Intangível'),
-    ], string="Subgrupo 1")
+    ], string="Subgrupo")
 
 
     # Lógica de escrever o código automaticamente

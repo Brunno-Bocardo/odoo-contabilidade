@@ -1,0 +1,12 @@
+<odoo>
+    <data>
+        <!-- Action -->
+        <record id="action_contabilidade_balanco_patrimonial" model="ir.actions.act_window">
+            <field name="name">Livro Patrimonial</field>
+            <field name="res_model">contabilidade.balanco.patrimonial.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+    </data>
+</odoo>

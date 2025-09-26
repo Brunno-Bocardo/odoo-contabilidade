@@ -17,7 +17,9 @@
 
 
     <!-- Menu Balanço Patrimonial -->
-
+    <menuitem id="menu_balanco_patrimonial_root" name="Balanço Patrimonial" sequence="20" web_icon="contabilidade,static/description/balanca.png"/>
+        <!-- Submenu Balanço Patrimonial -->
+        <menuitem id="menu_balanco_patrimonial" name="Balanço Patrimonial" parent="menu_balanco_patrimonial_root" action="action_contabilidade_balanco_patrimonial" sequence="20"/>
 
 
 
