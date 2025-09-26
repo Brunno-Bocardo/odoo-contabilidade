@@ -72,4 +72,13 @@ http://localhost/web/login
 - Certifique-se de que as portas 80 (Nginx) e 5432 (PostgreSQL) estejam livres no seu sistema.
 - Para facilitar o desenvolvimento e depuração, utilize a extensão ["Odoo Debug"](https://chromewebstore.google.com/detail/odoo-debug/hmdmhilocobgohohpdpolmibjklfgkbi) disponível para o navegador Chrome/Firefox. Ela adiciona funcionalidades extras à interface do Odoo, como modo debug, visualização de IDs e menus avançados. 
 
+# TODO LIST
+
+	- TROCAR ICONE DA ABA
+	- TROCAR NOME "ODOO - ..." DA ABA
+	- MUDAR LOGO DO LOGIN
+	- CRIAR CONTA PARA USUARIOS DISTINTOS
+	- COLOCAR BOTAO DE FECHAR NA VIEW BALANCO PATRIMONIAL
+
+
 
