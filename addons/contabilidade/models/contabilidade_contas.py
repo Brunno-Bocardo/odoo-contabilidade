@@ -16,12 +16,10 @@ class ContabilidadeContas(models.Model):
         ('passivo_nao_circulante', 'Passivo Não Circulante'),
         ('patrimonio', 'Patrimônio Líquido'),
         ('despesa', 'Despesa'),
-        ('apuracao', 'Apuração do Resultado'),
         ('receitas', 'Receitas'),
-        
+        ('apuracao', 'Apuração do Resultado'),
     ], string="Grupo Contábil", required=True)
 
-    # TODO: Modificar no campo form para ficar escrito Subgrupo.
     subgrupo1 = fields.Selection([
         ('realizavel', 'Realizável a longo Prazo'),
         ('investimentos', 'Investimentos'),
@@ -94,11 +92,4 @@ class ContabilidadeContas(models.Model):
             vals['name'] = f"{codigo_val} - {conta_nome}" if conta_nome else codigo_val
         return super(ContabilidadeContas, self).write(vals)
 
-    # def create(self, vals):
-    #     vals['name'] = f"{vals.get('codigo')} - {vals.get('conta')}"
-    #     return super(ContabilidadeContas, self).create(vals)
-    
-    # def write(self, vals):
-    #     if 'codigo' in vals or 'conta' in vals:
-    #         vals['name'] = f"{vals.get('codigo')} - {vals.get('conta')}"
-    #     return super(ContabilidadeContas, self).write(vals)
+

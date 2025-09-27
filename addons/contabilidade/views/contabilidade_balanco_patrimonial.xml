@@ -8,5 +8,68 @@
             <field name="target">new</field>
         </record>
 
+        <record id="view_balanco_patrimonial_wizard_form" model="ir.ui.view">
+            <field name="name">contabilidade.balanco.patrimonial.wizard.form</field>
+            <field name="model">contabilidade.balanco.patrimonial.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Balanço Patrimonial">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="data_base"/>
+                                <field name="currency_id" invisible="1"/>
+                                <field name="show_zero_accounts"/>
+                            </group>
+                            <group>
+                                <field name="total_ativo" readonly="1"/>
+                                <field name="total_passivo" readonly="1"/>
+                                <field name="total_patrimonio" readonly="1"/>
+                                <field name="total_passivo_patrimonio" readonly="1"/>
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <page string="Ativo">
+                                <field name="ativo_line_ids" nolabel="1">
+                                    <tree create="0" edit="0" delete="0">
+                                        <field name="conta_id"/>
+                                        <field name="grupo_contabil"/>
+                                        <field name="currency_id" invisible="1" column_invisible="1"/>
+                                        <field name="saldo" sum="Total Ativo"/>
+                                    </tree>
+                                </field>
+                            </page>
+
+                            <page string="Passivo">
+                                <field name="passivo_line_ids" nolabel="1">
+                                    <tree create="0" edit="0" delete="0">
+                                        <field name="conta_id"/>
+                                        <field name="grupo_contabil"/>
+                                        <field name="currency_id" invisible="1" column_invisible="1"/>
+                                        <field name="saldo" sum="Total Passivo"/>
+                                    </tree>
+                                </field>
+                            </page>
+
+                            <page string="Patrimônio Líquido">
+                                <field name="patrimonio_line_ids" nolabel="1">
+                                    <tree create="0" edit="0" delete="0">
+                                        <field name="conta_id"/>
+                                        <field name="grupo_contabil"/>
+                                        <field name="currency_id" invisible="1" column_invisible="1"/>
+                                        <field name="saldo" widget="monetary" sum="Total Patrimônio Líquido"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+
+                    <footer>
+                        <button string="Fechar" class="btn-oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
     </data>
 </odoo>
