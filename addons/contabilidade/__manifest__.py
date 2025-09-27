@@ -7,11 +7,14 @@
         'base',
         'web_responsive',
         'muk_web_appsbar',
-        'muk_web_colors'
+        'muk_web_colors',
+        # 'web_favicon'
     ],
     "assets": {
         "web.assets_backend": [
             # "contabilidade/static/src/scss/dark_theme.scss",
+            # 'contabilidade/static/src/xml/favicon.xml',
+            # 'contabilidade/static/src/img/logo1.ico',
         ],
     },
     'data': [
@@ -21,6 +24,7 @@
         'views/contabilidade_livro_razao.xml',
         'views/contabilidade_balanco_patrimonial.xml',
         'data/contas_data.xml',
+        # 'views/custom.xml',
         'views/menus.xml',
     ],
     'contributors': [

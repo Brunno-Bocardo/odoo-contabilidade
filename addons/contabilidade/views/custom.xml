@@ -1,0 +1,9 @@
+<odoo>
+    <data>
+        <template id="layout_custom_title" inherit_id="web.layout">
+            <xpath expr="//title" position="replace">
+                <title>Numera</title>
+            </xpath>
+        </template>
+    </data>
+</odoo>

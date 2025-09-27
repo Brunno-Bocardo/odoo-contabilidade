@@ -1,0 +1,7 @@
+<odoo>
+    <template id="numera_favicon" inherit_id="web.webclient_bootstrap">
+        <xpath expr="//head" position="inside">
+            <link rel="shortcut icon" type="image/x-icon" href="/contabilidade/static/src/img/logo1.ico"/>
+        </xpath>
+    </template>
+</odoo>
