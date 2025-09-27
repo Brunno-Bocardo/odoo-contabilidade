@@ -28,8 +28,10 @@ class ContabilidadeContas(models.Model):
     ], string="Subgrupo")
 
 
-    # Lógica de escrever o código automaticamente
     def create(self, vals):
+        if isinstance(vals, list):
+            vals = vals[0]
+
         if not vals.get('codigo') and vals.get('grupo_contabil'):
             prefixos = {
                 'circulante': '1',
@@ -38,44 +40,34 @@ class ContabilidadeContas(models.Model):
                 'passivo_nao_circulante': '4',
                 'patrimonio': '5',
                 'despesa': '6',
-                'apuracao': '6',
                 'receitas': '7',
+                'apuracao': '8',
             }
             prefixo = prefixos[vals['grupo_contabil']]
 
-            subgrupo_map = {
-                'realizavel': '0',
-                'investimentos': '1',
-                'imobilizado': '2',
-                'intangivel': '3',
-            }
-
             if vals['grupo_contabil'] == 'nao_circulante':
-                subgrupo1 = vals.get('subgrupo1')
-                if not subgrupo1:
-                    raise ValueError("Selecione um subgrupo para Ativo Não Circulante.")
-                digito_meio = subgrupo_map[subgrupo1]
-
-                ultima = self.search([
-                    ('grupo_contabil', '=', 'nao_circulante'),
-                    ('subgrupo1', '=', subgrupo1)
-                ], order='codigo desc', limit=1)
-
-                if ultima and ultima.codigo:
-                    partes = ultima.codigo.split('.')
-                    partes[-1] = str(int(partes[-1]) + 1)
-                    novo_codigo = '.'.join(partes)
-                else:
-                    novo_codigo = f"{prefixo}.{digito_meio}.1"
-
+                subgrupo_map = {
+                    'realizavel': '0',
+                    'investimentos': '1',
+                    'imobilizado': '2',
+                    'intangivel': '3',
+                }
+                meio = subgrupo_map.get(vals.get('subgrupo1'), '0')
             else:
-                ultima = self.search([('grupo_contabil', '=', vals['grupo_contabil'])], order='codigo desc', limit=1)
-                if ultima and ultima.codigo:
-                    partes = ultima.codigo.split('.')
-                    partes[-1] = str(int(partes[-1]) + 1)
-                    novo_codigo = '.'.join(partes)
-                else:
-                    novo_codigo = f"{prefixo}.0.1"
+                meio = '0'
+
+            domain = [('grupo_contabil', '=', vals['grupo_contabil'])]
+            if vals['grupo_contabil'] == 'nao_circulante' and vals.get('subgrupo1'):
+                domain.append(('subgrupo1', '=', vals['subgrupo1']))
+
+            ultima = self.search(domain, order='codigo desc', limit=1)
+
+            if ultima and ultima.codigo:
+                partes = ultima.codigo.split('.')
+                partes[-1] = str(int(partes[-1]) + 1)
+                novo_codigo = '.'.join(partes)
+            else:
+                novo_codigo = f"{prefixo}.{meio}.1"
 
             vals['codigo'] = novo_codigo
 
@@ -84,6 +76,7 @@ class ContabilidadeContas(models.Model):
         vals['name'] = f"{codigo_val} - {conta_nome}" if conta_nome else codigo_val
 
         return super(ContabilidadeContas, self).create(vals)
+
 
     def write(self, vals):
         if 'codigo' in vals or 'conta' in vals:

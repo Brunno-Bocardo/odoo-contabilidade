@@ -20,6 +20,7 @@
         'views/contabilidade_livro_diario.xml',
         'views/contabilidade_livro_razao.xml',
         'views/contabilidade_balanco_patrimonial.xml',
+        'data/contas_data.xml',
         'views/menus.xml',
     ],
     'contributors': [

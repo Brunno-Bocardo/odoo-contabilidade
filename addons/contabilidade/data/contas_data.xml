@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Ativo Circulante -->
+        <record id="conta_banco" model="contabilidade.contas">
+            <field name="conta">Banco</field>
+            <field name="codigo">1.0.1</field>
+            <field name="grupo_contabil">circulante</field>
+            <field name="name">1.0.1 - Banco</field>
+        </record>
+
+        <record id="conta_caixa" model="contabilidade.contas">
+            <field name="conta">Caixa</field>
+            <field name="codigo">1.0.2</field>
+            <field name="grupo_contabil">circulante</field>
+            <field name="name">1.0.2 - Caixa</field>
+        </record>
+
+        <record id="conta_estoque" model="contabilidade.contas">
+            <field name="conta">Estoque</field>
+            <field name="codigo">1.0.3</field>
+            <field name="grupo_contabil">circulante</field>
+            <field name="name">1.0.3 - Estoque</field>
+        </record>
+
+        <!-- Ativo Não Circulante - Subgrupo Imobilizado -->
+        <record id="conta_maquinas" model="contabilidade.contas">
+            <field name="conta">Máquinas e Equipamentos</field>
+            <field name="codigo">2.2.1</field>
+            <field name="grupo_contabil">nao_circulante</field>
+            <field name="subgrupo1">imobilizado</field>
+            <field name="name">2.2.1 - Máquinas e Equipamentos</field>
+        </record>
+
+        <!-- Passivo Circulante -->
+        <record id="conta_salarios" model="contabilidade.contas">
+            <field name="conta">Salários a Pagar</field>
+            <field name="codigo">3.0.1</field>
+            <field name="grupo_contabil">passivo_circulante</field>
+            <field name="name">3.0.1 - Salários a Pagar</field>
+        </record>
+
+        <record id="conta_fornecedores" model="contabilidade.contas">
+            <field name="conta">Fornecedores</field>
+            <field name="codigo">3.0.2</field>
+            <field name="grupo_contabil">passivo_circulante</field>
+            <field name="name">3.0.2 - Fornecedores</field>
+        </record>
+
+    </data>
+</odoo>

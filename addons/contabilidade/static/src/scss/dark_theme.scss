@@ -54,18 +54,18 @@ textarea {
 
 .o_field_widget input:focus,
 .o_input:focus {
-    border-color: #1A1A1A !important; /* verde só no foco */
+    border-color: #1A1A1A !important;
 }
 
 /* ================= BOTÕES ================= */
 .btn-primary {
-    background-color: #006400 !important; /* verde escuro */
+    background-color: #006400 !important; 
     border-color: #006400 !important;
     color: #ffffff !important;
     font-weight: bold !important;
 }
 .btn-primary:hover {
-    background-color: #32CD32 !important; /* verde claro */
+    background-color: #32CD32 !important; 
     border-color: #32CD32 !important;
     color: #1A1A1A !important;
 }
@@ -82,9 +82,9 @@ textarea {
 
 /* ================= LINKS ================= */
 a {
-    color: #ffffff !important; /* por padrão, branco */
+    color: #ffffff !important; 
     font-weight: normal !important;
 }
 a:hover {
-    color: #32CD32 !important; /* verde só no hover */
+    color: #32CD32 !important;
 }
