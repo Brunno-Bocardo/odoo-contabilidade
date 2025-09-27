@@ -5,17 +5,13 @@ class ContabilidadeLivroRazaoWizard(models.TransientModel):
     _name = 'contabilidade.livro.razao.wizard'
     _description = 'Livro Razão (consulta)'
 
-    conta_id = fields.Many2one('contabilidade.contas', string='Conta', required=True)
-    currency_id = fields.Many2one('res.currency',  default=lambda self: self.env.ref('base.BRL'), required=True)
-
+    conta_id      = fields.Many2one('contabilidade.contas', string='Conta', required=True)
+    currency_id   = fields.Many2one('res.currency',  default=lambda self: self.env.ref('base.BRL'), required=True)
     saldo_inicial = fields.Monetary(string='Saldo Inicial', currency_field='currency_id', compute='_compute_totais')
     total_debito  = fields.Monetary(string='Total Débitos', currency_field='currency_id', compute='_compute_totais')
     total_credito = fields.Monetary(string='Total Créditos', currency_field='currency_id', compute='_compute_totais')
     saldo_final   = fields.Char(string='Saldo Final', compute='_compute_totais')
-
-    line_ids = fields.One2many('contabilidade.livro.razao.line', 'wizard_id', string='Lançamentos', compute='_compute_lines', readonly=True)
-
-
+    line_ids      = fields.One2many('contabilidade.livro.razao.line', 'wizard_id', string='Lançamentos', compute='_compute_lines', readonly=True)
 
     # Atualiza automaticamente ao mudar filtros
     @api.onchange('conta_id')
@@ -45,10 +41,7 @@ class ContabilidadeLivroRazaoWizard(models.TransientModel):
             if not wizard.conta_id:
                 continue
 
-            movimentos = Diario.search(
-                wizard._get_domain_movimentos(),
-                order='data asc, id asc'
-            )
+            movimentos = Diario.search(wizard._get_domain_movimentos(), order='data asc, id asc')
 
             linhas_razao = []
             for movimento in movimentos:
@@ -85,19 +78,21 @@ class ContabilidadeLivroRazaoWizard(models.TransientModel):
                     total_debitos += movimento.valor
                 if movimento.conta_credito_id.id == conta:
                     total_creditos += movimento.valor
-
-            if wizard.total_debito >= wizard.total_credito:
-                tipo_saldo_final = "C"
-            else:
-                tipo_saldo_final = "D"
-
+        
             wizard.saldo_inicial = saldo_inicial
             wizard.total_debito = total_debitos
             wizard.total_credito = total_creditos
-            saldo_final_valor = saldo_inicial + total_debitos - total_creditos
-            valor_formatado = f"{saldo_final_valor:,.2f}"
-            wizard.saldo_final = f"R$ {valor_formatado} {tipo_saldo_final}"
 
+            if total_debitos > total_creditos:
+                tipo_saldo_final = "D"
+            elif total_creditos > total_debitos:
+                tipo_saldo_final = "C"
+            else:
+                tipo_saldo_final = ""
+
+            saldo_final_valor = saldo_inicial + total_debitos - total_creditos
+            valor_formatado = f"{abs(saldo_final_valor):,.2f}"
+            wizard.saldo_final = f"R$ {valor_formatado} {tipo_saldo_final}"
 
 
 class ContabilidadeLivroRazaoLine(models.TransientModel):
