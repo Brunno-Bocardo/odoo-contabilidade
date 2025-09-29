@@ -72,6 +72,7 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
             currency = wizard.currency_id
             movimentos = Diario.search([('data', '<=', wizard.data_base)])
 
+            # soma débitos/créditos por conta
             debit_by_acc = {}
             credit_by_acc = {}
             for m in movimentos:
@@ -119,35 +120,58 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
                 lines_by_area[area].append(Command.create(vals))
 
             # === Receitas - Despesas ===
-            receita_accounts = Account.search([('grupo_contabil', '=', 'receita')])
+            receita_accounts = Account.search([('grupo_contabil', '=', 'receitas')])
             despesa_accounts = Account.search([('grupo_contabil', '=', 'despesa')])
 
-            total_receita = 0.0
-            total_despesa = 0.0
-
-            for acc in receita_accounts:
-                debit_sum = debit_by_acc.get(acc.id, 0.0)
-                credit_sum = credit_by_acc.get(acc.id, 0.0)
-                total_receita += credit_sum - debit_sum  # receita: crédito
-
-            for acc in despesa_accounts:
-                debit_sum = debit_by_acc.get(acc.id, 0.0)
-                credit_sum = credit_by_acc.get(acc.id, 0.0)
-                total_despesa += debit_sum - credit_sum  # despesa: débito
+            total_receita = sum(
+                credit_by_acc.get(acc.id, 0.0) - debit_by_acc.get(acc.id, 0.0)
+                for acc in receita_accounts
+            )
+            total_despesa = sum(
+                debit_by_acc.get(acc.id, 0.0) - credit_by_acc.get(acc.id, 0.0)
+                for acc in despesa_accounts
+            )
 
             resultado_acumulado = total_receita - total_despesa
 
-            if not float_is_zero(resultado_acumulado, precision_rounding=currency.rounding):
-                nome_conta = "Lucro Acumulado" if resultado_acumulado > 0 else "Prejuízo Acumulado"
-                lines_by_area['patrimonio'].append(Command.create({
-                    'conta_id': False,
-                    'nome': nome_conta,
-                    'area': 'patrimonio',
-                    'saldo': currency.round(resultado_acumulado),
-                    'currency_id': currency.id,
-                }))
-                total_patrimonio += resultado_acumulado
+            # Procurar contas de Lucro/Prejuízo Acumulado no PL
+            lucro_account = Account.search([
+                ('grupo_contabil', '=', 'patrimonio'),
+                ('conta', 'ilike', 'lucro acumul')
+            ], limit=1)
+            prej_account = Account.search([
+                ('grupo_contabil', '=', 'patrimonio'),
+                ('conta', 'ilike', 'preju')
+            ], limit=1)
 
+            # fallback por códigos conhecidos (se nomes não batem)
+            if not lucro_account:
+                lucro_account = Account.search([('codigo', 'in', ['5.0.1', '4.0.1', '5.0.1'])], limit=1)
+            if not prej_account:
+                prej_account = Account.search([('codigo', 'in', ['5.0.2', '4.0.2'])], limit=1)
+
+            if not float_is_zero(resultado_acumulado, precision_rounding=currency.rounding):
+                if resultado_acumulado > 0:
+                    # Mostrar Lucro Acumulado
+                    lines_by_area['patrimonio'].append(Command.create({
+                        'conta_id': lucro_account.id if lucro_account else False,
+                        'nome': lucro_account.conta if lucro_account else "Lucros Acumulados",
+                        'area': 'patrimonio',
+                        'saldo': currency.round(resultado_acumulado),
+                        'currency_id': currency.id,
+                    }))
+                    total_patrimonio += resultado_acumulado
+                else:
+                    # Mostrar Prejuízo Acumulado
+                    val = abs(resultado_acumulado)
+                    lines_by_area['patrimonio'].append(Command.create({
+                        'conta_id': prej_account.id if prej_account else False,
+                        'nome': prej_account.conta if prej_account else "Prejuízos Acumulados",
+                        'area': 'patrimonio',
+                        'saldo': currency.round(-val) if False else currency.round(-val), 
+                        'currency_id': currency.id,
+                    }))
+                    total_patrimonio += resultado_acumulado
 
             wizard.ativo_line_ids = lines_by_area['ativo']
             wizard.passivo_line_ids = lines_by_area['passivo']
@@ -155,9 +179,10 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
 
             # Totais finais
             wizard.total_ativo = currency.round(total_ativo)
-            wizard.total_passivo = currency.round(total_passivo)
+            wizard.total_passivo = currency.round(total_passavo := total_passivo)  # keep var for clarity
             wizard.total_patrimonio = currency.round(total_patrimonio)
-            wizard.total_passivo_patrimonio = total_passivo + total_patrimonio
+            # soma passivo + pl
+            wizard.total_passivo_patrimonio = currency.round(total_passivo + total_patrimonio)
  
 
 

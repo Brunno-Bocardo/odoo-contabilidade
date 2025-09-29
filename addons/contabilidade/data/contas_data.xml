@@ -47,6 +47,34 @@
             <field name="grupo_contabil">passivo_circulante</field>
             <field name="name">3.0.2 - Fornecedores</field>
         </record>
+        <!-- Patrimônio Líquido -->
+        <record id="conta_lucros_acumulados" model="contabilidade.contas">
+            <field name="conta">Lucros Acumulados</field>
+            <field name="codigo">5.0.1</field>
+            <field name="grupo_contabil">patrimonio</field>
+            <field name="name">5.0.1 - Lucros Acumulados</field>
+        </record>
 
+        <record id="conta_prejuizos_acumulados" model="contabilidade.contas">
+            <field name="conta">Prejuízos Acumulados</field>
+            <field name="codigo">5.0.2</field>
+            <field name="grupo_contabil">patrimonio</field>
+            <field name="name">5.0.2 - Prejuízos Acumulados</field>
+        </record>
+        <!-- Receita -->
+        <record id="conta_receita" model="contabilidade.contas">
+            <field name="conta">Receita</field>
+            <field name="codigo">7.0.1</field>
+            <field name="grupo_contabil">receitas</field>
+            <field name="name">7.0.1 - Receita</field>
+        </record>
+
+        <!-- Despesa -->
+        <record id="conta_despesa" model="contabilidade.contas">
+            <field name="conta">Despesa</field>
+            <field name="codigo">6.0.1</field>
+            <field name="grupo_contabil">despesa</field>
+            <field name="name">6.0.1 - Despesa</field>
+        </record>
     </data>
 </odoo>

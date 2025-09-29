@@ -52,7 +52,7 @@
                             </page>
 
                             <page string="Patrimônio Líquido">
-                                <field name="patrimonio_line_ids" nolabel="1">
+                                <field name="patrimonio_line_ids" domain="[('nome','!=',False)]" nolabel="1">
                                     <tree create="0" edit="0" delete="0">
                                         <field name="nome"/>
                                         <field name="currency_id" invisible="1" column_invisible="1"/>
