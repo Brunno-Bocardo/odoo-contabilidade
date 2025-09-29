@@ -54,8 +54,7 @@
                             <page string="Patrimônio Líquido">
                                 <field name="patrimonio_line_ids" nolabel="1">
                                     <tree create="0" edit="0" delete="0">
-                                        <field name="conta_id"/>
-                                        <field name="grupo_contabil"/>
+                                        <field name="nome"/>
                                         <field name="currency_id" invisible="1" column_invisible="1"/>
                                         <field name="saldo" widget="monetary" sum="Total Patrimônio Líquido"/>
                                     </tree>
