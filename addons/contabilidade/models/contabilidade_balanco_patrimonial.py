@@ -26,10 +26,10 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
         string='Contas Patrimônio Líquido', compute='_compute_balanco', readonly=True,
     )
 
-    total_ativo = fields.Monetary(string='Total Ativo', currency_field='currency_id', compute='_compute_balanco')
-    total_passivo = fields.Monetary(string='Total Passivo', currency_field='currency_id', compute='_compute_balanco')
+    # total_ativo = fields.Monetary(string='Total Ativo', currency_field='currency_id', compute='_compute_balanco')
+    # total_passivo = fields.Monetary(string='Total Passivo', currency_field='currency_id', compute='_compute_balanco')
     total_patrimonio = fields.Monetary(string='Total Patrimônio Líquido', currency_field='currency_id', compute='_compute_balanco')
-    total_passivo_patrimonio = fields.Monetary(string='Total Passivo + PL', currency_field='currency_id', compute='_compute_balanco')
+    # total_passivo_patrimonio = fields.Monetary(string='Total Passivo + PL', currency_field='currency_id', compute='_compute_balanco')
 
     @api.onchange('data_base', 'show_zero_accounts')
     def _onchange_filters(self):
@@ -65,9 +65,9 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
 
             total_ativo = total_passivo = total_patrimonio = 0.0
 
-            if not wizard.data_base:
-                wizard.total_ativo = wizard.total_passivo = wizard.total_patrimonio = 0.0
-                continue
+            # if not wizard.data_base:
+            #     wizard.total_ativo = wizard.total_passivo = wizard.total_patrimonio = 0.0
+            #     continue
 
             currency = wizard.currency_id
             movimentos = Diario.search([('data', '<=', wizard.data_base)])
@@ -103,12 +103,12 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
                     continue
 
                 # Totais
-                if area == 'ativo':
-                    total_ativo += balance
-                elif area == 'passivo':
-                    total_passivo += balance
-                elif area == 'patrimonio':
-                    total_patrimonio += balance
+                # if area == 'ativo':
+                #     total_ativo += balance
+                # elif area == 'passivo':
+                #     total_passivo += balance
+                # elif area == 'patrimonio':
+                #     total_patrimonio += balance
 
                 vals = {
                     'conta_id': acc.id,
@@ -178,11 +178,11 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
             wizard.patrimonio_line_ids = lines_by_area['patrimonio']
 
             # Totais finais
-            wizard.total_ativo = currency.round(total_ativo)
-            wizard.total_passivo = currency.round(total_passavo := total_passivo)  # keep var for clarity
-            wizard.total_patrimonio = currency.round(total_patrimonio)
+            #wizard.total_ativo = currency.round(total_ativo)
+            #wizard.total_passivo = currency.round(total_passivo := total_passivo)
+            #wizard.total_patrimonio = currency.round(total_patrimonio)
             # soma passivo + pl
-            wizard.total_passivo_patrimonio = currency.round(total_passivo + total_patrimonio)
+            #wizard.total_passivo_patrimonio = currency.round(total_passivo + total_patrimonio)
  
 
 
