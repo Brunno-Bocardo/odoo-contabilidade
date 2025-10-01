@@ -10,6 +10,7 @@ class ContabilidadeLivroDiario(models.Model):
     conta_debito_id = fields.Many2one('contabilidade.contas', string="Débito", required=True)
     valor = fields.Float(string="Valor", required=True)
     currency_id = fields.Many2one('res.currency', string="Moeda", default=lambda self: self.env.ref('base.BRL'), required=True)
+    user_id = fields.Many2one('res.users', string="Usuário", default=lambda self: self.env.user)
 
 
     def action_open_form(self):

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <data noupdate="1">
+    <data noupdate="0">
 
         <!-- Ativo Circulante -->
         <record id="conta_banco" model="contabilidade.contas">
@@ -8,6 +8,7 @@
             <field name="codigo">1.0.1</field>
             <field name="grupo_contabil">circulante</field>
             <field name="name">1.0.1 - Banco</field>
+            <field name="user_id"></field>
         </record>
 
         <record id="conta_caixa" model="contabilidade.contas">
@@ -15,6 +16,7 @@
             <field name="codigo">1.0.2</field>
             <field name="grupo_contabil">circulante</field>
             <field name="name">1.0.2 - Caixa</field>
+            <field name="user_id"></field>
         </record>
 
         <record id="conta_estoque" model="contabilidade.contas">
@@ -22,6 +24,7 @@
             <field name="codigo">1.0.3</field>
             <field name="grupo_contabil">circulante</field>
             <field name="name">1.0.3 - Estoque</field>
+            <field name="user_id"></field>
         </record>
 
         <!-- Ativo Não Circulante - Subgrupo Imobilizado -->
@@ -31,6 +34,7 @@
             <field name="grupo_contabil">nao_circulante</field>
             <field name="subgrupo1">imobilizado</field>
             <field name="name">2.2.1 - Máquinas e Equipamentos</field>
+            <field name="user_id"></field>
         </record>
 
         <!-- Passivo Circulante -->
@@ -39,6 +43,7 @@
             <field name="codigo">3.0.1</field>
             <field name="grupo_contabil">passivo_circulante</field>
             <field name="name">3.0.1 - Salários a Pagar</field>
+            <field name="user_id"></field>
         </record>
 
         <record id="conta_fornecedores" model="contabilidade.contas">
@@ -46,6 +51,7 @@
             <field name="codigo">3.0.2</field>
             <field name="grupo_contabil">passivo_circulante</field>
             <field name="name">3.0.2 - Fornecedores</field>
+            <field name="user_id"></field>
         </record>
         <!-- Patrimônio Líquido -->
         <record id="conta_lucros_acumulados" model="contabilidade.contas">
@@ -53,6 +59,7 @@
             <field name="codigo">5.0.1</field>
             <field name="grupo_contabil">patrimonio</field>
             <field name="name">5.0.1 - Lucros Acumulados</field>
+            <field name="user_id"></field>
         </record>
 
         <record id="conta_prejuizos_acumulados" model="contabilidade.contas">
@@ -60,6 +67,7 @@
             <field name="codigo">5.0.2</field>
             <field name="grupo_contabil">patrimonio</field>
             <field name="name">5.0.2 - Prejuízos Acumulados</field>
+            <field name="user_id"></field>
         </record>
         <!-- Receita -->
         <record id="conta_receita" model="contabilidade.contas">
@@ -67,6 +75,7 @@
             <field name="codigo">7.0.1</field>
             <field name="grupo_contabil">receitas</field>
             <field name="name">7.0.1 - Receita</field>
+            <field name="user_id"></field>
         </record>
 
         <!-- Despesa -->
@@ -75,6 +84,7 @@
             <field name="codigo">6.0.1</field>
             <field name="grupo_contabil">despesa</field>
             <field name="name">6.0.1 - Despesa</field>
+            <field name="user_id"></field>
         </record>
     </data>
 </odoo>

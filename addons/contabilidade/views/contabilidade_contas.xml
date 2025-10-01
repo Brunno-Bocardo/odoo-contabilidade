@@ -11,7 +11,7 @@
         <field name="name">contabilidade.contas.tree</field>
         <field name="model">contabilidade.contas</field>
         <field name="arch" type="xml">
-            <tree string="Contas">
+            <tree string="Contas" default_order="name asc">
                 <field name="name" string="Conta"/>
                 <field name="grupo_contabil"/>
                 <field name="subgrupo1"/>

@@ -42,7 +42,9 @@
                             </tree>
                         </field>
                     </div>
-                    <footer><button string="Fechar" class="oe_link" special="cancel"/></footer>
+                    <footer>
+                        <button string="Fechar" class="btn-oe_link" special="cancel"/>
+                    </footer>
                 </form>
             </field>
         </record>

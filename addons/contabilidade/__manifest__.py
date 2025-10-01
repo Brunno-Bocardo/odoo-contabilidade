@@ -19,6 +19,7 @@
     },
     'data': [
         'security/ir.model.access.csv',
+        'security/ir_rule.xml',
         'views/contabilidade_contas.xml',
         'views/contabilidade_livro_diario.xml',
         'views/contabilidade_livro_razao.xml',

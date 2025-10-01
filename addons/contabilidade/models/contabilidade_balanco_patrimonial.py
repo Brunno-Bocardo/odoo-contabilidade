@@ -81,7 +81,13 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
                 if m.conta_credito_id:
                     credit_by_acc[m.conta_credito_id.id] = credit_by_acc.get(m.conta_credito_id.id, 0.0) + (m.valor or 0.0)
 
-            accounts = Account.search([('grupo_contabil', 'in', bs_groups)], order='codigo asc, conta asc, id asc')
+            accounts = Account.search([
+                ('grupo_contabil', 'in', bs_groups),
+                '|', '|',
+                    ('user_id', '=', self.env.user.id),
+                    ('user_id', '=', False),
+                    ('user_id', '=', 1)
+            ], order='codigo asc, conta asc, id asc')
 
             area_inverse = {
                 'ativo': 'wizard_ativo_id',
@@ -104,6 +110,7 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
 
                 vals = {
                     'conta_id': acc.id,
+                    'nome': acc.name, 
                     'area': area,
                     'saldo': currency.round(balance),
                     'currency_id': currency.id,
@@ -186,6 +193,7 @@ class ContabilidadeBalancoPatrimonialLine(models.TransientModel):
     wizard_ativo_id = fields.Many2one('contabilidade.balanco.patrimonial.wizard', ondelete='cascade')
     wizard_passivo_id = fields.Many2one('contabilidade.balanco.patrimonial.wizard', ondelete='cascade')
     wizard_patrimonio_id = fields.Many2one('contabilidade.balanco.patrimonial.wizard', ondelete='cascade')
+    user_id = fields.Many2one('res.users', string="Usuário", default=lambda self: self.env.user)
 
     conta_id = fields.Many2one('contabilidade.contas', string='Conta', index=True)
     area = fields.Selection([

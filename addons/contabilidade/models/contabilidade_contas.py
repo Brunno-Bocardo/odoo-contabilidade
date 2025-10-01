@@ -8,6 +8,7 @@ class ContabilidadeContas(models.Model):
     conta = fields.Char(string="Conta", required=True)
     codigo = fields.Char(string="Código", readonly=True)
     descricao = fields.Text(string="Descrição")
+    user_id = fields.Many2one('res.users', string="Usuário", default=lambda self: self.env.user)
 
     grupo_contabil = fields.Selection([
         ('circulante', 'Ativo Circulante'),
