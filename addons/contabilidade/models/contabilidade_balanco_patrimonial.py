@@ -107,6 +107,14 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
 
                 if not wizard.show_zero_accounts and float_is_zero(balance, precision_rounding=currency.rounding):
                     continue
+                
+                # Accumulate totals
+                if area == 'ativo':
+                    total_ativo += balance
+                elif area == 'passivo':
+                    total_passivo += balance
+                elif area == 'patrimonio':
+                    total_patrimonio += balance
 
                 vals = {
                     'conta_id': acc.id,
@@ -178,9 +186,8 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
 
             # Totais finais
             wizard.total_ativo = currency.round(total_ativo)
-            wizard.total_passivo = currency.round(total_passivo := total_passivo)
+            wizard.total_passivo = currency.round(total_passivo)
             wizard.total_patrimonio = currency.round(total_patrimonio)
-            # soma passivo + pl
             wizard.total_passivo_patrimonio = currency.round(total_passivo + total_patrimonio)
  
 
