@@ -70,9 +70,15 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
                 continue
 
             currency = wizard.currency_id
-            movimentos = Diario.search([('data', '<=', wizard.data_base)])
 
-            # soma débitos/créditos por conta
+            # --- MOVIMENTOS: filtra pelos lançamentos do usuario atual ---
+            user_field = 'user_id' if 'user_id' in Diario._fields else 'create_uid'
+            movimentos = Diario.search([
+                ('data', '<=', wizard.data_base),
+                (user_field, '=', self.env.user.id)
+            ])
+
+            # soma débitos/créditos por conta (apenas movimentos do usuario)
             debit_by_acc = {}
             credit_by_acc = {}
             for m in movimentos:
@@ -81,6 +87,7 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
                 if m.conta_credito_id:
                     credit_by_acc[m.conta_credito_id.id] = credit_by_acc.get(m.conta_credito_id.id, 0.0) + (m.valor or 0.0)
 
+            # --- CONTAS (tanto padrao e do proprio usuario) ---
             accounts = Account.search([
                 ('grupo_contabil', 'in', bs_groups),
                 '|', '|',
@@ -88,6 +95,22 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
                     ('user_id', '=', False),
                     ('user_id', '=', 1)
             ], order='codigo asc, conta asc, id asc')
+
+            # Contas de Receita/Despesa
+            receita_accounts = Account.search([
+                ('grupo_contabil', 'in', ['receita', 'receitas']),
+                '|', '|',
+                    ('user_id', '=', self.env.user.id),
+                    ('user_id', '=', False),
+                    ('user_id', '=', 1)
+            ])
+            despesa_accounts = Account.search([
+                ('grupo_contabil', 'in', ['despesa', 'despesas']),
+                '|', '|',
+                    ('user_id', '=', self.env.user.id),
+                    ('user_id', '=', False),
+                    ('user_id', '=', 1)
+            ])
 
             area_inverse = {
                 'ativo': 'wizard_ativo_id',
@@ -127,9 +150,6 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
                 lines_by_area[area].append(Command.create(vals))
 
             # === Receitas - Despesas ===
-            receita_accounts = Account.search([('grupo_contabil', '=', 'receitas')])
-            despesa_accounts = Account.search([('grupo_contabil', '=', 'despesa')])
-
             total_receita = sum(
                 credit_by_acc.get(acc.id, 0.0) - debit_by_acc.get(acc.id, 0.0)
                 for acc in receita_accounts
@@ -142,24 +162,21 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
             resultado_acumulado = total_receita - total_despesa
 
             # Procurar contas de Lucro/Prejuízo Acumulado no PL
-            lucro_account = Account.search([
-                ('grupo_contabil', '=', 'patrimonio'),
-                ('conta', 'ilike', 'lucro acumul')
-            ], limit=1)
-            prej_account = Account.search([
-                ('grupo_contabil', '=', 'patrimonio'),
-                ('conta', 'ilike', 'preju')
-            ], limit=1)
+            def _find_pl_account(term_like):
+                domain_user = [('grupo_contabil', '=', 'patrimonio'), ('conta', 'ilike', term_like), ('user_id', '=', self.env.user.id)]
+                acc = Account.search(domain_user, limit=1)
+                if acc:
+                    return acc
+                acc = Account.search([('grupo_contabil', '=', 'patrimonio'), ('conta', 'ilike', term_like), ('user_id', '=', False)], limit=1)
+                if acc:
+                    return acc
+                return Account.search([('grupo_contabil', '=', 'patrimonio'), ('conta', 'ilike', term_like), ('user_id', '=', 1)], limit=1)
 
-            # fallback por códigos conhecidos (se nomes não batem)
-            if not lucro_account:
-                lucro_account = Account.search([('codigo', 'in', ['5.0.1', '4.0.1', '5.0.1'])], limit=1)
-            if not prej_account:
-                prej_account = Account.search([('codigo', 'in', ['5.0.2', '4.0.2'])], limit=1)
+            lucro_account = _find_pl_account('lucro acumul')
+            prej_account = _find_pl_account('preju')
 
             if not float_is_zero(resultado_acumulado, precision_rounding=currency.rounding):
                 if resultado_acumulado > 0:
-                    # Mostrar Lucro Acumulado
                     lines_by_area['patrimonio'].append(Command.create({
                         'conta_id': lucro_account.id if lucro_account else False,
                         'nome': lucro_account.conta if lucro_account else "Lucros Acumulados",
@@ -169,13 +186,12 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
                     }))
                     total_patrimonio += resultado_acumulado
                 else:
-                    # Mostrar Prejuízo Acumulado
                     val = abs(resultado_acumulado)
                     lines_by_area['patrimonio'].append(Command.create({
                         'conta_id': prej_account.id if prej_account else False,
                         'nome': prej_account.conta if prej_account else "Prejuízos Acumulados",
                         'area': 'patrimonio',
-                        'saldo': currency.round(-val) if False else currency.round(-val), 
+                        'saldo': currency.round(-val),
                         'currency_id': currency.id,
                     }))
                     total_patrimonio += resultado_acumulado
@@ -189,7 +205,6 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
             wizard.total_passivo = currency.round(total_passivo)
             wizard.total_patrimonio = currency.round(total_patrimonio)
             wizard.total_passivo_patrimonio = currency.round(total_passivo + total_patrimonio)
- 
 
 
 class ContabilidadeBalancoPatrimonialLine(models.TransientModel):
@@ -200,7 +215,7 @@ class ContabilidadeBalancoPatrimonialLine(models.TransientModel):
     wizard_ativo_id = fields.Many2one('contabilidade.balanco.patrimonial.wizard', ondelete='cascade')
     wizard_passivo_id = fields.Many2one('contabilidade.balanco.patrimonial.wizard', ondelete='cascade')
     wizard_patrimonio_id = fields.Many2one('contabilidade.balanco.patrimonial.wizard', ondelete='cascade')
-    user_id = fields.Many2one('res.users', string="Usuário", default=lambda self: self.env.user)
+    user_id = fields.Many2one('res.users', string='Usuário', default=lambda self: self.env.user)
 
     conta_id = fields.Many2one('contabilidade.contas', string='Conta', index=True)
     area = fields.Selection([
@@ -214,4 +229,4 @@ class ContabilidadeBalancoPatrimonialLine(models.TransientModel):
 
     codigo = fields.Char(string='Código', related='conta_id.codigo', store=False)
     grupo_contabil = fields.Selection(string='Grupo Contábil', related='conta_id.grupo_contabil', store=False)
-    nome = fields.Char(string="Conta")
+    nome = fields.Char(string='Conta')
