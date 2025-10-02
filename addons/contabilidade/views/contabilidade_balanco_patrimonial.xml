@@ -20,12 +20,12 @@
                                 <field name="currency_id" invisible="1"/>
                                 <field name="show_zero_accounts"/>
                             </group>
-                            <!-- <group>
+                            <group>
                                 <field name="total_ativo" readonly="1"/>
                                 <field name="total_passivo" readonly="1"/>
                                 <field name="total_patrimonio" readonly="1"/>
                                 <field name="total_passivo_patrimonio" readonly="1"/>
-                            </group> -->
+                            </group>
                         </group>
 
                         <notebook>
