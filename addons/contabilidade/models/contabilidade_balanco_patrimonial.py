@@ -5,8 +5,13 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
     _name = 'contabilidade.balanco.patrimonial.wizard'
     _description = 'Balanço Patrimonial (consulta)'
 
-    data_base = fields.Date(
-        string='Data-base',
+    data_inicial = fields.Date(
+        string='Data Inicial',
+        required=True,
+        default=lambda self: fields.Date.context_today(self)
+    )
+    data_final = fields.Date(
+        string='Data Final',
         required=True,
         default=lambda self: fields.Date.context_today(self)
     )
@@ -31,7 +36,7 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
     total_patrimonio = fields.Monetary(string='Total Patrimônio Líquido', currency_field='currency_id', compute='_compute_balanco')
     total_passivo_patrimonio = fields.Monetary(string='Total Passivo + PL', currency_field='currency_id', compute='_compute_balanco')
 
-    @api.onchange('data_base', 'show_zero_accounts')
+    @api.onchange('data_inicial', 'show_zero_accounts', 'data_final')
     def _onchange_filters(self):
         self._compute_balanco()
 
@@ -47,7 +52,7 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
     def _compute_natural_balance(self, area: str, debit_sum: float, credit_sum: float) -> float:
         return (debit_sum - credit_sum) if area == 'ativo' else (credit_sum - debit_sum)
 
-    @api.depends('data_base', 'show_zero_accounts', 'currency_id')
+    @api.depends('data_inicial', 'show_zero_accounts', 'currency_id', 'data_final')
     def _compute_balanco(self):
         Diario = self.env['contabilidade.livro.diario'].sudo()
         Account = self.env['contabilidade.contas'].sudo()
@@ -65,7 +70,7 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
 
             total_ativo = total_passivo = total_patrimonio = 0.0
 
-            if not wizard.data_base:
+            if not wizard.data_inicial:# || data_final??
                 wizard.total_ativo = wizard.total_passivo = wizard.total_patrimonio = 0.0
                 continue
 
@@ -74,7 +79,8 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
             # --- MOVIMENTOS: filtra pelos lançamentos do usuario atual ---
             user_field = 'user_id' if 'user_id' in Diario._fields else 'create_uid'
             movimentos = Diario.search([
-                ('data', '<=', wizard.data_base),
+                ('data', '>=', wizard.data_inicial),
+                ('data', '<=', wizard.data_final),
                 (user_field, '=', self.env.user.id)
             ])
 

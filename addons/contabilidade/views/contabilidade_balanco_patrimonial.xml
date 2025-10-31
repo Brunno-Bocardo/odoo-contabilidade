@@ -16,7 +16,8 @@
                     <sheet>
                         <group>
                             <group>
-                                <field name="data_base"/>
+                                <field name="data_inicial"/>
+                                <field name="data_final"/>
                                 <field name="currency_id" invisible="1"/>
                                 <field name="show_zero_accounts"/>
                             </group>
