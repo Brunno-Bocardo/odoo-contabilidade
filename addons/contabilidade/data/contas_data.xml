@@ -27,7 +27,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_estoque" model="contabilidade.contas">
+        <record id="conta_a_receber" model="contabilidade.contas">
             <field name="conta">Contas a Receber</field>
             <field name="codigo">1.0.4</field>
             <field name="grupo_contabil">circulante</field>
@@ -35,7 +35,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_estoque" model="contabilidade.contas">
+        <record id="conta_mercadoria" model="contabilidade.contas">
             <field name="conta">Mercadorias</field>
             <field name="codigo">1.0.5</field>
             <field name="grupo_contabil">circulante</field>
@@ -43,7 +43,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_estoque" model="contabilidade.contas">
+        <record id="conta_despezas_antecipadas" model="contabilidade.contas">
             <field name="conta">Despezas Antecipadas</field>
             <field name="codigo">1.0.6</field>
             <field name="grupo_contabil">circulante</field>
@@ -51,7 +51,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_estoque" model="contabilidade.contas">
+        <record id="conta_impostos_a_recuperar" model="contabilidade.contas">
             <field name="conta">Impostos a Recuperar</field>
             <field name="codigo">1.0.7</field>
             <field name="grupo_contabil">circulante</field>
@@ -59,7 +59,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_estoque" model="contabilidade.contas">
+        <record id="conta_impostos_a_recuperar" model="contabilidade.contas">
             <field name="conta">Impostos a Recuperar</field>
             <field name="codigo">1.0.7</field>
             <field name="grupo_contabil">circulante</field>
@@ -67,7 +67,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_estoque" model="contabilidade.contas">
+        <record id="conta_clientes" model="contabilidade.contas">
             <field name="conta">Clientes</field>
             <field name="codigo">1.0.8</field>
             <field name="grupo_contabil">circulante</field>
@@ -76,7 +76,7 @@
         </record>
 
         <!-- Ativo Não Circulante - Subgrupo Imobilizado -->
-        <record id="conta_estoque" model="contabilidade.contas">
+        <record id="conta_clientes_longo_prazo" model="contabilidade.contas">
             <field name="conta">Clientes - Longo Prazo</field>
             <field name="codigo">2.0.1</field>
             <field name="grupo_contabil">circulante</field>
@@ -84,7 +84,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_estoque" model="contabilidade.contas">
+        <record id="conta_depositos_judiciais" model="contabilidade.contas">
             <field name="conta">Depósitos Judiciais</field>
             <field name="codigo">2.0.2</field>
             <field name="grupo_contabil">circulante</field>
@@ -92,7 +92,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_estoque" model="contabilidade.contas">
+        <record id="conta_participacoes_societarias" model="contabilidade.contas">
             <field name="conta">Participações Societárias</field>
             <field name="codigo">2.1.1</field>
             <field name="grupo_contabil">circulante</field>
@@ -100,7 +100,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_estoque" model="contabilidade.contas">
+        <record id="conta_imoveis_para_renda" model="contabilidade.contas">
             <field name="conta">Imóveis para Renda</field>
             <field name="codigo">2.1.2</field>
             <field name="grupo_contabil">circulante</field>
@@ -117,7 +117,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_estoque" model="contabilidade.contas">
+        <record id="conta_depreciacao" model="contabilidade.contas">
             <field name="conta">Depreciação Acumulada</field>
             <field name="codigo">2.2.2</field>
             <field name="grupo_contabil">circulante</field>
@@ -125,7 +125,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_estoque" model="contabilidade.contas">
+        <record id="conta_softwares" model="contabilidade.contas">
             <field name="conta">Softwares</field>
             <field name="codigo">2.3.1</field>
             <field name="grupo_contabil">circulante</field>
@@ -133,7 +133,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_estoque" model="contabilidade.contas">
+        <record id="conta_marcas" model="contabilidade.contas">
             <field name="conta">Marcas e Patentes</field>
             <field name="codigo">2.3.2</field>
             <field name="grupo_contabil">circulante</field>
@@ -158,7 +158,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_estoque" model="contabilidade.contas">
+        <record id="conta_impostos_a_recolher" model="contabilidade.contas">
             <field name="conta">Impostos a Recolher</field>
             <field name="codigo">3.0.3</field>
             <field name="grupo_contabil">passivo_circulante</field>
@@ -166,7 +166,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_estoque" model="contabilidade.contas">
+        <record id="conta_emprestimo_cp" model="contabilidade.contas">
             <field name="conta">Empréstimos Bancários CP</field>
             <field name="codigo">3.0.4</field>
             <field name="grupo_contabil">passivo_circulante</field>
@@ -174,7 +174,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_estoque" model="contabilidade.contas">
+        <record id="conta_contas_a_pagar" model="contabilidade.contas">
             <field name="conta">Contas a Pagar</field>
             <field name="codigo">3.0.5</field>
             <field name="grupo_contabil">passivo_circulante</field>
@@ -182,15 +182,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_estoque" model="contabilidade.contas">
-            <field name="conta">Contas a Pagar</field>
-            <field name="codigo">3.0.5</field>
-            <field name="grupo_contabil">passivo_circulante</field>
-            <field name="name">3.0.5 - Contas a Pagar</field>
-            <field name="user_id"></field>
-        </record>
-
-        <record id="conta_estoque" model="contabilidade.contas">
+        <record id="conta_emprestimo_lp" model="contabilidade.contas">
             <field name="conta">Empréstimos bancários LP</field>
             <field name="codigo">4.0.1</field>
             <field name="grupo_contabil">passivo_nao_circulante</field>
@@ -198,7 +190,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_estoque" model="contabilidade.contas">
+        <record id="conta_provisoes" model="contabilidade.contas">
             <field name="conta">Provisões Trabalhistas</field>
             <field name="codigo">4.0.2</field>
             <field name="grupo_contabil">passivo_nao_circulante</field>
@@ -206,7 +198,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_estoque" model="contabilidade.contas">
+        <record id="conta_pagar_lp" model="contabilidade.contas">
             <field name="conta">Contas a pagar LP</field>
             <field name="codigo">4.0.3</field>
             <field name="grupo_contabil">passivo_nao_circulante</field>
@@ -231,7 +223,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_prejuizos_acumulados" model="contabilidade.contas">
+        <record id="conta_capital_social" model="contabilidade.contas">
             <field name="conta">Capital Social</field>
             <field name="codigo">5.0.3</field>
             <field name="grupo_contabil">patrimonio</field>
@@ -239,7 +231,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_prejuizos_acumulados" model="contabilidade.contas">
+        <record id="conta_reservas_lucro" model="contabilidade.contas">
             <field name="conta">Reservas de Lucros</field>
             <field name="codigo">5.0.4</field>
             <field name="grupo_contabil">patrimonio</field>
@@ -256,7 +248,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_receita" model="contabilidade.contas">
+        <record id="conta_receita_vendas" model="contabilidade.contas">
             <field name="conta">Receita de Vendas</field>
             <field name="codigo">7.0.2</field>
             <field name="grupo_contabil">receitas</field>
@@ -264,7 +256,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_receita" model="contabilidade.contas">
+        <record id="conta_receita_servicos" model="contabilidade.contas">
             <field name="conta">Receita de Serviços</field>
             <field name="codigo">7.0.3</field>
             <field name="grupo_contabil">receitas</field>
@@ -272,7 +264,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_receita" model="contabilidade.contas">
+        <record id="conta_receita_financeira" model="contabilidade.contas">
             <field name="conta">Receita Financeira</field>
             <field name="codigo">7.0.4</field>
             <field name="grupo_contabil">receitas</field>
@@ -289,7 +281,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_despesa" model="contabilidade.contas">
+        <record id="conta_cmv" model="contabilidade.contas">
             <field name="conta">CMV</field>
             <field name="codigo">6.0.2</field>
             <field name="grupo_contabil">despesa</field>
@@ -297,7 +289,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_despesa" model="contabilidade.contas">
+        <record id="conta_cpv" model="contabilidade.contas">
             <field name="conta">CPV</field>
             <field name="codigo">6.0.3</field>
             <field name="grupo_contabil">despesa</field>
@@ -305,7 +297,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_despesa" model="contabilidade.contas">
+        <record id="conta_csp" model="contabilidade.contas">
             <field name="conta">CSP</field>
             <field name="codigo">6.0.4</field>
             <field name="grupo_contabil">despesa</field>
@@ -313,7 +305,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_despesa" model="contabilidade.contas">
+        <record id="conta_despesa_salario" model="contabilidade.contas">
             <field name="conta">Despesa com Salários</field>
             <field name="codigo">6.0.5</field>
             <field name="grupo_contabil">despesa</field>
@@ -321,7 +313,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_despesa" model="contabilidade.contas">
+        <record id="conta_despesa_aluguel" model="contabilidade.contas">
             <field name="conta">Despesa com Aluguel</field>
             <field name="codigo">6.0.6</field>
             <field name="grupo_contabil">despesa</field>
@@ -329,7 +321,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_despesa" model="contabilidade.contas">
+        <record id="conta_despesa_energia" model="contabilidade.contas">
             <field name="conta">Despesa com Energia Elétrica</field>
             <field name="codigo">6.0.7</field>
             <field name="grupo_contabil">despesa</field>
@@ -337,7 +329,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_despesa" model="contabilidade.contas">
+        <record id="conta_despesa_financeira" model="contabilidade.contas">
             <field name="conta">Despesa Financeira</field>
             <field name="codigo">6.0.8</field>
             <field name="grupo_contabil">despesa</field>
@@ -345,7 +337,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_despesa" model="contabilidade.contas">
+        <record id="conta_despesa_escritorio" model="contabilidade.contas">
             <field name="conta">Despesa com Material de Escritório</field>
             <field name="codigo">6.0.9</field>
             <field name="grupo_contabil">despesa</field>
@@ -353,7 +345,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_despesa" model="contabilidade.contas">
+        <record id="conta_despesa_depreciacao" model="contabilidade.contas">
             <field name="conta">Despesa com Depreciação</field>
             <field name="codigo">6.0.10</field>
             <field name="grupo_contabil">despesa</field>
@@ -361,7 +353,7 @@
             <field name="user_id"></field>
         </record>
 
-        <record id="conta_despesa" model="contabilidade.contas">
+        <record id="conta_despesa_irpj" model="contabilidade.contas">
             <field name="conta">Despesa com IRPJ</field>
             <field name="codigo">6.0.11</field>
             <field name="grupo_contabil">despesa</field>
