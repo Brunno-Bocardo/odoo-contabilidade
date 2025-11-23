@@ -22,6 +22,11 @@
         <menuitem id="menu_balanco_patrimonial" name="Balanço Patrimonial" parent="menu_balanco_patrimonial_root" action="action_contabilidade_balanco_patrimonial" sequence="20"/>
 
 
+    <!-- Menu DRE -->
+    <menuitem id="menu_dre_root" name="DRE" sequence="25" web_icon="contabilidade,static/description/dre.png"/>
+        <menuitem id="menu_dre" name="DRE - Demonstrativo" parent="menu_dre_root" action="action_contabilidade_dre" sequence="25"/>
+
+
 
     <!-- Oculta os menus padrões para usuários comuns -->
     <record id="mail.menu_root_discuss" model="ir.ui.menu">

@@ -24,6 +24,7 @@
         'views/contabilidade_livro_diario.xml',
         'views/contabilidade_livro_razao.xml',
         'views/contabilidade_balanco_patrimonial.xml',
+        'views/contabilidade_dre.xml',
         'data/contas_data.xml',
         # 'views/custom.xml',
         'views/menus.xml',
