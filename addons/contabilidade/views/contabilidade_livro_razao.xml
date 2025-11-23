@@ -18,14 +18,15 @@
                     <group>
                         <group string="Filtros">
                             <field name="conta_id" required="1"/>
+                            <field name="data_base"/>
                             <field name="currency_id" invisible="1"/>
                         </group>
 
                         <group string="Saldos"> 
-                            <field name="saldo_inicial" widget="monetary" readonly="1"/>
-                            <field name="total_debito"  widget="monetary" readonly="1"/>
-                            <field name="total_credito" widget="monetary" readonly="1"/>  
+                            <field name="saldo_inicial" readonly="1"/>
                             <field name="saldo_final" readonly="1"/>
+                            <field name="total_debito"  widget="monetary" readonly="1"/>
+                            <field name="total_credito" widget="monetary" readonly="1"/>
                         </group>
                     </group>
                        
