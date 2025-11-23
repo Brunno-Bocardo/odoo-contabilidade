@@ -1,46 +1,48 @@
 from odoo import api, fields, models, Command
 from odoo.tools.float_utils import float_is_zero
+from dateutil.relativedelta import relativedelta
+from odoo.exceptions import ValidationError
+
 
 class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
     _name = 'contabilidade.balanco.patrimonial.wizard'
-    _description = 'Balanço Patrimonial (consulta)'
+    _description = 'Balanço Patrimonial (análise vertical e horizontal)'
 
-    data_inicial = fields.Date(
-        string='Data Inicial',
-        required=True,
-        default=lambda self: fields.Date.context_today(self)
-    )
-    data_final = fields.Date(
-        string='Data Final',
-        required=True,
-        default=lambda self: fields.Date.context_today(self)
-    )
-    show_zero_accounts = fields.Boolean(string='Exibir contas zeradas', default=True)
-    currency_id = fields.Many2one('res.currency', default=lambda self: self.env.ref('base.BRL'))
+    date_recent               = fields.Date(string='Recente', required=True, default=lambda self: fields.Date.context_today(self))
+    date_previous             = fields.Date(string='Anterior', required=True, default=lambda self: fields.Date.context_today(self) - relativedelta(months=1))
+    show_zero_accounts        = fields.Boolean(string='Mostrar contas zeradas', default=False)
+    currency_id               = fields.Many2one('res.currency', string='Currency', required=True, default=lambda self: self.env.company.currency_id)
+    line_ids                  = fields.One2many('contabilidade.balanco.patrimonial.line', 'wizard_id', string='Lines', readonly=True, compute='_compute_balanco')
+    total_ativo_recent        = fields.Monetary(string='Total A Recente', currency_field='currency_id', compute='_compute_balanco')
+    total_ativo_previous      = fields.Monetary(string='Total A Anterior', currency_field='currency_id', compute='_compute_balanco')
+    total_passivo_pl_recent   = fields.Monetary(string='Total P Recente', currency_field='currency_id', compute='_compute_balanco')
+    total_passivo_pl_previous = fields.Monetary(string='Total P Anterior', currency_field='currency_id', compute='_compute_balanco')
 
-    ativo_line_ids = fields.One2many(
-        'contabilidade.balanco.patrimonial.line', 'wizard_ativo_id',
-        string='Contas Ativo', compute='_compute_balanco', readonly=True,
-    )
-    passivo_line_ids = fields.One2many(
-        'contabilidade.balanco.patrimonial.line', 'wizard_passivo_id',
-        string='Contas Passivo', compute='_compute_balanco', readonly=True,
-    )
-    patrimonio_line_ids = fields.One2many(
-        'contabilidade.balanco.patrimonial.line', 'wizard_patrimonio_id',
-        string='Contas Patrimônio Líquido', compute='_compute_balanco', readonly=True,
-    )
-
-    total_ativo = fields.Monetary(string='Total Ativo', currency_field='currency_id', compute='_compute_balanco')
-    total_passivo = fields.Monetary(string='Total Passivo', currency_field='currency_id', compute='_compute_balanco')
-    total_patrimonio = fields.Monetary(string='Total Patrimônio Líquido', currency_field='currency_id', compute='_compute_balanco')
-    total_passivo_patrimonio = fields.Monetary(string='Total Passivo + PL', currency_field='currency_id', compute='_compute_balanco')
-
-    @api.onchange('data_inicial', 'show_zero_accounts', 'data_final')
+    @api.onchange('date_recent', 'date_previous', 'show_zero_accounts')
     def _onchange_filters(self):
         self._compute_balanco()
 
+    @api.constrains('date_previous', 'date_recent')
+    def _check_dates(self):
+        for wizard in self:
+            if wizard.date_previous and wizard.date_recent \
+               and wizard.date_previous > wizard.date_recent:
+                raise ValidationError("A data anterior deve ser igual ou anterior à data mais recente.")
+
+    @api.onchange('date_previous', 'date_recent')
+    def _onchange_dates(self):
+        for wizard in self:
+            if wizard.date_previous and wizard.date_recent and wizard.date_previous > wizard.date_recent:
+                wizard.date_previous = wizard.date_recent
+                return {
+                    'warning': {
+                        'title': "Selção de datas inválida!",
+                        'message': "A data anterior não pode ser posterior à data recente.",
+                    }
+                }
+
     def _map_area_from_group(self, grupo_contabil: str) -> str:
+        """Map plano de contas group -> área contábil (para sinal)."""
         return {
             'circulante': 'ativo',
             'nao_circulante': 'ativo',
@@ -50,189 +52,375 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
         }.get(grupo_contabil)
 
     def _compute_natural_balance(self, area: str, debit_sum: float, credit_sum: float) -> float:
-        return (debit_sum - credit_sum) if area == 'ativo' else (credit_sum - debit_sum)
+        """Saldo com sinal contábil natural."""
+        if area == 'ativo':
+            return debit_sum - credit_sum
+        return credit_sum - debit_sum
 
-    @api.depends('data_inicial', 'show_zero_accounts', 'currency_id', 'data_final')
+
+    @api.depends('date_recent', 'date_previous', 'show_zero_accounts', 'currency_id')
     def _compute_balanco(self):
         Diario = self.env['contabilidade.livro.diario'].sudo()
         Account = self.env['contabilidade.contas'].sudo()
 
-        bs_groups = [
+        BS_GROUPS = [
             'circulante', 'nao_circulante',
             'passivo_circulante', 'passivo_nao_circulante',
             'patrimonio',
         ]
 
+        GROUP_INFO = {
+            'circulante': {
+                'label': 'Ativo Circulante',
+                'section': 'ativo',
+            },
+            'nao_circulante': {
+                'label': 'Ativo Não Circulante',
+                'section': 'ativo',
+            },
+            'passivo_circulante': {
+                'label': 'Passivo Circulante',
+                'section': 'passivo_pl',
+            },
+            'passivo_nao_circulante': {
+                'label': 'Passivo Não Circulante',
+                'section': 'passivo_pl',
+            },
+            'patrimonio': {
+                'label': 'Patrimônio Líquido',
+                'section': 'passivo_pl',
+            },
+        }
+
         for wizard in self:
-            wizard.ativo_line_ids = [Command.clear()]
-            wizard.passivo_line_ids = [Command.clear()]
-            wizard.patrimonio_line_ids = [Command.clear()]
+            wizard.line_ids = [Command.clear()]
+            wizard.total_ativo_recent = 0.0
+            wizard.total_ativo_previous = 0.0
+            wizard.total_passivo_pl_recent = 0.0
+            wizard.total_passivo_pl_previous = 0.0
 
-            total_ativo = total_passivo = total_patrimonio = 0.0
-
-            if not wizard.data_inicial:# || data_final??
-                wizard.total_ativo = wizard.total_passivo = wizard.total_patrimonio = 0.0
+            if not wizard.date_recent or not wizard.date_previous:
                 continue
 
             currency = wizard.currency_id
+            precision = currency.rounding
 
-            # --- MOVIMENTOS: filtra pelos lançamentos do usuario atual ---
+            date_recent = wizard.date_recent
+            date_previous = wizard.date_previous
+
+            # --- movimentos até cada data (posição) ---
             user_field = 'user_id' if 'user_id' in Diario._fields else 'create_uid'
-            movimentos = Diario.search([
-                ('data', '>=', wizard.data_inicial),
-                ('data', '<=', wizard.data_final),
-                (user_field, '=', self.env.user.id)
+            domain_base = [(user_field, '=', self.env.user.id)]
+
+            moves_recent = Diario.search([
+                *domain_base,
+                ('data', '<=', date_recent),
+            ])
+            moves_previous = Diario.search([
+                *domain_base,
+                ('data', '<=', date_previous),
             ])
 
-            # soma débitos/créditos por conta (apenas movimentos do usuario)
-            debit_by_acc = {}
-            credit_by_acc = {}
-            for m in movimentos:
-                if m.conta_debito_id:
-                    debit_by_acc[m.conta_debito_id.id] = debit_by_acc.get(m.conta_debito_id.id, 0.0) + (m.valor or 0.0)
-                if m.conta_credito_id:
-                    credit_by_acc[m.conta_credito_id.id] = credit_by_acc.get(m.conta_credito_id.id, 0.0) + (m.valor or 0.0)
+            debit_recent = {}
+            credit_recent = {}
+            debit_previous = {}
+            credit_previous = {}
 
-            # --- CONTAS (tanto padrao e do proprio usuario) ---
+            for m in moves_recent:
+                if m.conta_debito_id:
+                    debit_recent[m.conta_debito_id.id] = debit_recent.get(m.conta_debito_id.id, 0.0) + (m.valor or 0.0)
+                if m.conta_credito_id:
+                    credit_recent[m.conta_credito_id.id] = credit_recent.get(m.conta_credito_id.id, 0.0) + (m.valor or 0.0)
+
+            for m in moves_previous:
+                if m.conta_debito_id:
+                    debit_previous[m.conta_debito_id.id] = debit_previous.get(m.conta_debito_id.id, 0.0) + (m.valor or 0.0)
+                if m.conta_credito_id:
+                    credit_previous[m.conta_credito_id.id] = credit_previous.get(m.conta_credito_id.id, 0.0) + (m.valor or 0.0)
+
+            # contas de balanço
             accounts = Account.search([
-                ('grupo_contabil', 'in', bs_groups),
+                ('grupo_contabil', 'in', BS_GROUPS),
                 '|', '|',
-                    ('user_id', '=', self.env.user.id),
-                    ('user_id', '=', False),
-                    ('user_id', '=', 1)
+                ('user_id', '=', self.env.user.id),
+                ('user_id', '=', False),
+                ('user_id', '=', 1),
             ], order='codigo asc, conta asc, id asc')
 
-            # Contas de Receita/Despesa
+            # contas de resultado
             receita_accounts = Account.search([
                 ('grupo_contabil', 'in', ['receita', 'receitas']),
                 '|', '|',
-                    ('user_id', '=', self.env.user.id),
-                    ('user_id', '=', False),
-                    ('user_id', '=', 1)
+                ('user_id', '=', self.env.user.id),
+                ('user_id', '=', False),
+                ('user_id', '=', 1),
             ])
             despesa_accounts = Account.search([
                 ('grupo_contabil', 'in', ['despesa', 'despesas']),
                 '|', '|',
-                    ('user_id', '=', self.env.user.id),
-                    ('user_id', '=', False),
-                    ('user_id', '=', 1)
+                ('user_id', '=', self.env.user.id),
+                ('user_id', '=', False),
+                ('user_id', '=', 1),
             ])
 
-            area_inverse = {
-                'ativo': 'wizard_ativo_id',
-                'passivo': 'wizard_passivo_id',
-                'patrimonio': 'wizard_patrimonio_id',
-            }
-            lines_by_area = {'ativo': [], 'passivo': [], 'patrimonio': []}
+            account_data_by_group = {g: [] for g in BS_GROUPS}
+            group_totals_recent = {g: 0.0 for g in BS_GROUPS}
+            group_totals_previous = {g: 0.0 for g in BS_GROUPS}
 
+            total_ativo_recent = total_ativo_previous = 0.0
+            total_passivo_pl_recent = total_passivo_pl_previous = 0.0
+
+            # saldos por conta
             for acc in accounts:
-                area = wizard._map_area_from_group(acc.grupo_contabil)
+                group_key = acc.grupo_contabil
+                area = wizard._map_area_from_group(group_key)
                 if not area:
                     continue
 
-                debit_sum = debit_by_acc.get(acc.id, 0.0)
-                credit_sum = credit_by_acc.get(acc.id, 0.0)
-                balance = wizard._compute_natural_balance(area, debit_sum, credit_sum)
+                debit_r = debit_recent.get(acc.id, 0.0)
+                credit_r = credit_recent.get(acc.id, 0.0)
+                debit_p = debit_previous.get(acc.id, 0.0)
+                credit_p = credit_previous.get(acc.id, 0.0)
 
-                if not wizard.show_zero_accounts and float_is_zero(balance, precision_rounding=currency.rounding):
+                balance_recent = wizard._compute_natural_balance(area, debit_r, credit_r)
+                balance_previous = wizard._compute_natural_balance(area, debit_p, credit_p)
+
+                if (
+                    not wizard.show_zero_accounts
+                    and float_is_zero(balance_recent, precision_rounding=precision)
+                    and float_is_zero(balance_previous, precision_rounding=precision)
+                ):
                     continue
-                
-                # Accumulate totals
+
+                section = GROUP_INFO[group_key]['section']
+
                 if area == 'ativo':
-                    total_ativo += balance
-                elif area == 'passivo':
-                    total_passivo += balance
-                elif area == 'patrimonio':
-                    total_patrimonio += balance
-
-                vals = {
-                    'conta_id': acc.id,
-                    'nome': acc.name, 
-                    'area': area,
-                    'saldo': currency.round(balance),
-                    'currency_id': currency.id,
-                }
-                vals[area_inverse[area]] = wizard.id
-                lines_by_area[area].append(Command.create(vals))
-
-            # === Receitas - Despesas ===
-            total_receita = sum(
-                credit_by_acc.get(acc.id, 0.0) - debit_by_acc.get(acc.id, 0.0)
-                for acc in receita_accounts
-            )
-            total_despesa = sum(
-                debit_by_acc.get(acc.id, 0.0) - credit_by_acc.get(acc.id, 0.0)
-                for acc in despesa_accounts
-            )
-
-            resultado_acumulado = total_receita - total_despesa
-
-            # Procurar contas de Lucro/Prejuízo Acumulado no PL
-            def _find_pl_account(term_like):
-                domain_user = [('grupo_contabil', '=', 'patrimonio'), ('conta', 'ilike', term_like), ('user_id', '=', self.env.user.id)]
-                acc = Account.search(domain_user, limit=1)
-                if acc:
-                    return acc
-                acc = Account.search([('grupo_contabil', '=', 'patrimonio'), ('conta', 'ilike', term_like), ('user_id', '=', False)], limit=1)
-                if acc:
-                    return acc
-                return Account.search([('grupo_contabil', '=', 'patrimonio'), ('conta', 'ilike', term_like), ('user_id', '=', 1)], limit=1)
-
-            lucro_account = _find_pl_account('lucro acumul')
-            prej_account = _find_pl_account('preju')
-
-            if not float_is_zero(resultado_acumulado, precision_rounding=currency.rounding):
-                if resultado_acumulado > 0:
-                    lines_by_area['patrimonio'].append(Command.create({
-                        'conta_id': lucro_account.id if lucro_account else False,
-                        'nome': lucro_account.conta if lucro_account else "Lucros Acumulados",
-                        'area': 'patrimonio',
-                        'saldo': currency.round(resultado_acumulado),
-                        'currency_id': currency.id,
-                    }))
-                    total_patrimonio += resultado_acumulado
+                    total_ativo_recent += balance_recent
+                    total_ativo_previous += balance_previous
                 else:
-                    val = abs(resultado_acumulado)
-                    lines_by_area['patrimonio'].append(Command.create({
-                        'conta_id': prej_account.id if prej_account else False,
-                        'nome': prej_account.conta if prej_account else "Prejuízos Acumulados",
-                        'area': 'patrimonio',
-                        'saldo': currency.round(-val),
-                        'currency_id': currency.id,
-                    }))
-                    total_patrimonio += resultado_acumulado
+                    total_passivo_pl_recent += balance_recent
+                    total_passivo_pl_previous += balance_previous
 
-            wizard.ativo_line_ids = lines_by_area['ativo']
-            wizard.passivo_line_ids = lines_by_area['passivo']
-            wizard.patrimonio_line_ids = lines_by_area['patrimonio']
+                group_totals_recent[group_key] += balance_recent
+                group_totals_previous[group_key] += balance_previous
 
-            # Totais finais
-            wizard.total_ativo = currency.round(total_ativo)
-            wizard.total_passivo = currency.round(total_passivo)
-            wizard.total_patrimonio = currency.round(total_patrimonio)
-            wizard.total_passivo_patrimonio = currency.round(total_passivo + total_patrimonio)
+                account_data_by_group[group_key].append({
+                    'account_id': acc.id,
+                    'name': acc.name,
+                    'group_key': group_key,
+                    'section': section,
+                    'area': area,
+                    'saldo_recent': balance_recent,
+                    'saldo_previous': balance_previous,
+                })
+
+            # resultado acumulado
+            def _net_result(debit_map, credit_map):
+                total_receita = sum((credit_map.get(acc.id, 0.0) - debit_map.get(acc.id, 0.0)) for acc in receita_accounts)
+                total_despesa = sum((debit_map.get(acc.id, 0.0) - credit_map.get(acc.id, 0.0)) for acc in despesa_accounts)
+                return total_receita - total_despesa
+
+            resultado_recent = _net_result(debit_recent, credit_recent)
+            resultado_previous = _net_result(debit_previous, credit_previous)
+
+            if not (
+                float_is_zero(resultado_recent, precision_rounding=precision)
+                and float_is_zero(resultado_previous, precision_rounding=precision)
+                and not wizard.show_zero_accounts
+            ):
+                group_key = 'patrimonio'
+                section = 'passivo_pl'
+
+                group_totals_recent[group_key] += resultado_recent
+                group_totals_previous[group_key] += resultado_previous
+                total_passivo_pl_recent += resultado_recent
+                total_passivo_pl_previous += resultado_previous
+
+                account_data_by_group[group_key].append({
+                    'account_id': False,
+                    'name': 'Lucros/Prejuízos Acumulados',
+                    'group_key': group_key,
+                    'section': section,
+                    'area': 'patrimonio',
+                    'saldo_recent': resultado_recent,
+                    'saldo_previous': resultado_previous,
+                })
+
+
+            def percent(value, denom):
+                if float_is_zero(denom, precision_rounding=precision):
+                    return 0.0
+                return value / denom
+
+            def ah(recent_val, previous_val):
+                if float_is_zero(previous_val, precision_rounding=precision):
+                    return False
+                return (recent_val - previous_val) / previous_val
+
+            line_commands = []
+            seq = 0
+
+            def add_line(values):
+                nonlocal seq
+                seq += 1
+                values.setdefault('sequence', seq)
+                values.setdefault('currency_id', currency.id)
+                line_commands.append(Command.create(values))
+
+            # HEADER ATIVO
+            add_line({
+                'name': 'ATIVO',
+                'section': 'ativo',
+                'display_type': 'section',
+                'saldo_recent': currency.round(total_ativo_recent),
+                'saldo_previous': currency.round(total_ativo_previous),
+                'av_recent': percent(total_ativo_recent, total_ativo_recent),
+                'av_previous': percent(total_ativo_previous, total_ativo_previous),
+                'ah_percent': ah(total_ativo_recent, total_ativo_previous),
+            })
+
+            # grupos de ATIVO (subtotais)
+            for group_key in ('circulante', 'nao_circulante'):
+                group_label = GROUP_INFO[group_key]['label']
+                group_r = group_totals_recent.get(group_key, 0.0)
+                group_p = group_totals_previous.get(group_key, 0.0)
+
+                if (
+                    not wizard.show_zero_accounts
+                    and float_is_zero(group_r, precision_rounding=precision)
+                    and float_is_zero(group_p, precision_rounding=precision)
+                ):
+                    continue
+
+                add_line({
+                    'name': group_label,
+                    'section': 'ativo',
+                    'group_key': group_key,
+                    'display_type': 'subtotal',
+                    'saldo_recent': currency.round(group_r),
+                    'saldo_previous': currency.round(group_p),
+                    'av_recent': percent(group_r, total_ativo_recent),
+                    'av_previous': percent(group_p, total_ativo_previous),
+                    'ah_percent': ah(group_r, group_p),
+                })
+
+                for data in account_data_by_group.get(group_key, []):
+                    saldo_r = data['saldo_recent']
+                    saldo_p = data['saldo_previous']
+
+                    if (
+                        not wizard.show_zero_accounts
+                        and float_is_zero(saldo_r, precision_rounding=precision)
+                        and float_is_zero(saldo_p, precision_rounding=precision)
+                    ):
+                        continue
+
+                    add_line({
+                        'conta_id': data['account_id'],
+                        'name': data['name'],
+                        'section': 'ativo',
+                        'group_key': group_key,
+                        'display_type': 'line',
+                        'saldo_recent': currency.round(saldo_r),
+                        'saldo_previous': currency.round(saldo_p),
+                        'av_recent': percent(saldo_r, total_ativo_recent),
+                        'av_previous': percent(saldo_p, total_ativo_previous),
+                        'ah_percent': ah(saldo_r, saldo_p),
+                    })
+
+            # HEADER PASSIVO + PL
+            add_line({
+                'name': 'PASSIVO + PL',
+                'section': 'passivo_pl',
+                'display_type': 'section',
+                'saldo_recent': currency.round(total_passivo_pl_recent),
+                'saldo_previous': currency.round(total_passivo_pl_previous),
+                'av_recent': percent(total_passivo_pl_recent, total_passivo_pl_recent),
+                'av_previous': percent(total_passivo_pl_previous, total_passivo_pl_previous),
+                'ah_percent': ah(total_passivo_pl_recent, total_passivo_pl_previous),
+            })
+
+            # grupos de PASSIVO + PL (subtotais)
+            for group_key in ('passivo_circulante', 'passivo_nao_circulante', 'patrimonio'):
+                group_label = GROUP_INFO[group_key]['label']
+                group_r = group_totals_recent.get(group_key, 0.0)
+                group_p = group_totals_previous.get(group_key, 0.0)
+
+                if (
+                    not wizard.show_zero_accounts
+                    and float_is_zero(group_r, precision_rounding=precision)
+                    and float_is_zero(group_p, precision_rounding=precision)
+                ):
+                    continue
+
+                add_line({
+                    'name': group_label,
+                    'section': 'passivo_pl',
+                    'group_key': group_key,
+                    'display_type': 'subtotal',
+                    'saldo_recent': currency.round(group_r),
+                    'saldo_previous': currency.round(group_p),
+                    'av_recent': percent(group_r, total_passivo_pl_recent),
+                    'av_previous': percent(group_p, total_passivo_pl_previous),
+                    'ah_percent': ah(group_r, group_p),
+                })
+
+                for data in account_data_by_group.get(group_key, []):
+                    saldo_r = data['saldo_recent']
+                    saldo_p = data['saldo_previous']
+
+                    if (
+                        not wizard.show_zero_accounts
+                        and float_is_zero(saldo_r, precision_rounding=precision)
+                        and float_is_zero(saldo_p, precision_rounding=precision)
+                    ):
+                        continue
+
+                    add_line({
+                        'conta_id': data['account_id'],
+                        'name': data['name'],
+                        'section': 'passivo_pl',
+                        'group_key': group_key,
+                        'display_type': 'line',
+                        'saldo_recent': currency.round(saldo_r),
+                        'saldo_previous': currency.round(saldo_p),
+                        'av_recent': percent(saldo_r, total_passivo_pl_recent),
+                        'av_previous': percent(saldo_p, total_passivo_pl_previous),
+                        'ah_percent': ah(saldo_r, saldo_p),
+                    })
+
+            wizard.line_ids = line_commands
+            wizard.total_ativo_recent = currency.round(total_ativo_recent)
+            wizard.total_ativo_previous = currency.round(total_ativo_previous)
+            wizard.total_passivo_pl_recent = currency.round(total_passivo_pl_recent)
+            wizard.total_passivo_pl_previous = currency.round(total_passivo_pl_previous)
 
 
 class ContabilidadeBalancoPatrimonialLine(models.TransientModel):
     _name = 'contabilidade.balanco.patrimonial.line'
-    _description = 'Linha do Balanço Patrimonial (consulta)'
-    _order = 'area, id'
+    _description = 'Linha do Balanço Patrimonial (AV/AH)'
+    _order = 'section, sequence, id'
 
-    wizard_ativo_id = fields.Many2one('contabilidade.balanco.patrimonial.wizard', ondelete='cascade')
-    wizard_passivo_id = fields.Many2one('contabilidade.balanco.patrimonial.wizard', ondelete='cascade')
-    wizard_patrimonio_id = fields.Many2one('contabilidade.balanco.patrimonial.wizard', ondelete='cascade')
-    user_id = fields.Many2one('res.users', string='Usuário', default=lambda self: self.env.user)
-
-    conta_id = fields.Many2one('contabilidade.contas', string='Conta', index=True)
-    area = fields.Selection([
-        ('ativo', 'Ativo'),
-        ('passivo', 'Passivo'),
-        ('patrimonio', 'Patrimônio Líquido'),
-    ], string='Área', required=True, index=True)
-
-    saldo = fields.Monetary(string='Saldo', currency_field='currency_id')
-    currency_id = fields.Many2one('res.currency', string='Moeda', required=True)
-
-    codigo = fields.Char(string='Código', related='conta_id.codigo', store=False)
+    wizard_id      = fields.Many2one('contabilidade.balanco.patrimonial.wizard', ondelete='cascade')
+    sequence       = fields.Integer(default=10)
+    section        = fields.Selection([('ativo', 'Ativo'),('passivo_pl', 'Passivo + PL')], string='Section', required=True, index=True)
+    display_type   = fields.Selection([('line', 'Line'),('section', 'Section header'),('subtotal', 'Subtotal')], string='Display Type', default='line')
+    conta_id       = fields.Many2one('contabilidade.contas', string='Account')
+    name           = fields.Char(string='Conta', required=True)
+    user_id        = fields.Many2one('res.users', string='Usuário', default=lambda self: self.env.user)
+    currency_id    = fields.Many2one('res.currency', string='Currency', required=True)
+    saldo_recent   = fields.Monetary(string='Valor Recente', currency_field='currency_id')
+    saldo_previous = fields.Monetary(string='Valor Anterior', currency_field='currency_id')
+    av_recent      = fields.Float(string='AV% Recente')
+    av_previous    = fields.Float(string='AV% Anterior')
+    ah_percent     = fields.Float(string='AH%')
+    codigo         = fields.Char(string='Code', related='conta_id.codigo', store=False)
     grupo_contabil = fields.Selection(string='Grupo Contábil', related='conta_id.grupo_contabil', store=False)
-    nome = fields.Char(string='Conta')
+    group_key      = fields.Selection([
+        ('circulante', 'Ativo Circulante'),
+        ('nao_circulante', 'Ativo Não Circulante'),
+        ('passivo_circulante', 'Passivo Circulante'),
+        ('passivo_nao_circulante', 'Passivo Não Circulante'),
+        ('patrimonio', 'Patrimônio Líquido'),
+    ], string='Tipo')
+

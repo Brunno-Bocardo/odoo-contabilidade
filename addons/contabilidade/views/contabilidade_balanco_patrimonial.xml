@@ -1,6 +1,6 @@
 <odoo>
     <data>
-        <!-- Action -->
+
         <record id="action_contabilidade_balanco_patrimonial" model="ir.actions.act_window">
             <field name="name">Balanço Patrimonial</field>
             <field name="res_model">contabilidade.balanco.patrimonial.wizard</field>
@@ -15,54 +15,43 @@
                 <form string="Balanço Patrimonial">
                     <sheet>
                         <group>
-                            <group>
-                                <field name="data_inicial"/>
-                                <field name="data_final"/>
-                                <field name="currency_id" invisible="1"/>
+                            <group string="Filters">
+                                <field name="date_recent"/>
+                                <field name="date_previous"/>
                                 <field name="show_zero_accounts"/>
+                                <field name="currency_id" invisible="1"/>
                             </group>
-                            <group>
-                                <field name="total_ativo" readonly="1"/>
-                                <field name="total_passivo" readonly="1"/>
-                                <field name="total_patrimonio" readonly="1"/>
-                                <field name="total_passivo_patrimonio" readonly="1"/>
-                            </group>
+                            <!-- <group string="Totals">
+                                <field name="total_ativo_recent" widget="monetary" readonly="1"/>
+                                <field name="total_ativo_previous" widget="monetary" readonly="1"/>
+                                <field name="total_passivo_pl_recent" widget="monetary" readonly="1"/>
+                                <field name="total_passivo_pl_previous" widget="monetary" readonly="1"/>
+                            </group> -->
                         </group>
 
-                        <notebook>
-                            <page string="Ativo">
-                                <field name="ativo_line_ids" nolabel="1">
-                                    <tree create="0" edit="0" delete="0">
-                                        <field name="conta_id"/>
-                                        <field name="grupo_contabil"/>
-                                        <field name="currency_id" invisible="1" column_invisible="1"/>
-                                        <field name="saldo" sum="Total Ativo"/>
-                                    </tree>
-                                </field>
-                            </page>
+                        <group invisible="date_recent == False or date_previous == False">
+                            <field name="line_ids" string="">
+                                <tree create="0" edit="0" delete="0" decoration-bf="display_type != 'line'">
+                                    <field name="section" column_invisible="1"/>
+                                    <field name="display_type" column_invisible="1"/>
+                                    <field name="group_key" column_invisible="1"/>
+                                    <field name="currency_id" column_invisible="1"/>
 
-                            <page string="Passivo">
-                                <field name="passivo_line_ids" nolabel="1">
-                                    <tree create="0" edit="0" delete="0">
-                                        <field name="conta_id"/>
-                                        <field name="grupo_contabil"/>
-                                        <field name="currency_id" invisible="1" column_invisible="1"/>
-                                        <field name="saldo" sum="Total Passivo"/>
-                                    </tree>
-                                </field>
-                            </page>
+                                    <field name="name"/>
 
-                            <page string="Patrimônio Líquido">
-                                <field name="patrimonio_line_ids" nolabel="1">
-                                    <tree create="0" edit="0" delete="0">
-                                        <field name="nome"/>
-                                        <field name="grupo_contabil"/>
-                                        <field name="currency_id" invisible="1" column_invisible="1"/>
-                                        <field name="saldo" widget="monetary" sum="Total Patrimônio Líquido"/>
-                                    </tree>
-                                </field>
-                            </page>
-                        </notebook>
+                                    <!-- coluna data recente -->
+                                    <field name="saldo_recent" widget="monetary"/>
+                                    <field name="av_recent" widget="percentage"/>
+
+                                    <!-- coluna data anterior -->
+                                    <field name="saldo_previous" widget="monetary"/>
+                                    <field name="av_previous" widget="percentage"/>
+
+                                    <!-- análise horizontal -->
+                                    <field name="ah_percent" string="AH%" widget="percentage"/>
+                                </tree>
+                            </field>
+                        </group>
                     </sheet>
 
                     <footer>
