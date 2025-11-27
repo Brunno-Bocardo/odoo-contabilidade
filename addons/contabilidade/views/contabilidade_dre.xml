@@ -45,7 +45,7 @@
                         </group>
 
                         <group string="Demonstrativo - Linhas" invisible="date_from == False or date_to == False">
-                            <field name="line_ids">
+                            <field name="line_ids" string="">
                                 <tree create="0" edit="0" delete="0" decoration-bf="display_type != 'line'">
                                     <field name="display_type" invisible="1"/>
                                     <field name="conta_id"/>
