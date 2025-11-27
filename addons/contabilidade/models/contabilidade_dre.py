@@ -46,13 +46,21 @@ class ContabilidadeDreWizard(models.TransientModel):
 
         for wiz in self:
             wiz.line_ids = [Command.clear()]
+
             wiz.total_receita = 0.0
             wiz.total_despesa = 0.0
             wiz.lucro_prejuizo = 0.0
             wiz.receita_bruta = 0.0
+            wiz.impostos_sobre_venda = 0.0
+            wiz.devolucoes = 0.0
             wiz.receita_liquida = 0.0
+            wiz.custo_inicial = 0.0
+            wiz.custo_atual = 0.0
             wiz.lucro_bruto = 0.0
+            wiz.despesas_operacionais = 0.0
             wiz.resultado_antes_financeiro = 0.0
+            wiz.receita_financeira = 0.0
+            wiz.despesa_financeira = 0.0
             wiz.lucro_liquido = 0.0
 
             if not wiz.date_from or not wiz.date_to:
