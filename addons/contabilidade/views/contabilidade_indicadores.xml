@@ -1,0 +1,115 @@
+<odoo>
+
+    <!-- Form view do wizard de Indicadores -->
+    <record id="view_contabilidade_indicadores_wizard_form" model="ir.ui.view">
+        <field name="name">contabilidade.indicadores.wizard.form</field>
+        <field name="model">contabilidade.indicadores.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Indicadores Financeiros">
+                <sheet>
+
+                    <!-- Filtros: Mês/Ano e Moeda -->
+                    <group string="Período de Análise">
+                        <group>
+                            <label for="month" string="Mês:"/>
+                            <div>
+                                <field name="month"  class="oe_inline"/>
+                                <field name="year"  class="oe_inline"/>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="currency_id" widget="many2one" invisible="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Índices de Liquidez (somente campos, sem label) -->
+                    <group string="Índices de Liquidez" col="3">
+
+                        <!-- Liquidez Imediata -->
+                        <group string="Imediata">
+                            <field name="liq_imediata" widget="percentage" readonly="1" string="Imediata"/>
+                            <field name="liq_imediata_disponivel" widget="monetary" readonly="1" string="Disponível"/>
+                            <field name="liq_imediata_passivo_circ" widget="monetary" readonly="1" string="Passivo Circulante"/>
+                        </group>
+
+                        <!-- Liquidez Seca -->
+                        <group string="Seca">
+                            <field name="liq_seca" widget="percentage" readonly="1" string="Seca"/>
+                            <field name="liq_seca_ativo_sem_estoque" widget="monetary" readonly="1" string="Ativo Cisculante - Estoque"/>
+                            <field name="liq_seca_passivo_circ" widget="monetary" readonly="1" string="Passivo Circulante"/>
+                        </group>
+
+                        <!-- Liquidez Corrente -->
+                        <group string="Liquidez Corrente">
+                            <field name="liq_corrente" widget="percentage" readonly="1" string="Corrente"/>
+                            <field name="liq_corrente_ativo_circ" widget="monetary" readonly="1" string="Ativo Circulante"/>
+                            <field name="liq_corrente_passivo_circ" widget="monetary" readonly="1" string="Passivo Circulante"/>
+                        </group>
+
+                        <!-- Liquidez Geral -->
+                        <group string="Liquidez Geral">
+                            <field name="liq_geral" widget="percentage" readonly="1" string="Geral"/>
+                            <field name="liq_geral_ativo_circ_rlp" widget="monetary" readonly="1" string="Ativo Circulante + RLP"/>
+                            <field name="liq_geral_passivo_total" widget="monetary" readonly="1" string="Passivo Total"/>
+                        </group>
+
+                        <!-- Solvência Geral -->
+                        <group string="Solvência Geral">
+                            <field name="solvencia_geral" widget="percentage" readonly="1" string="Solvência Geral"/>
+                            <field name="solvencia_ativo_total" widget="monetary" readonly="1" string="Ativo Total"/>
+                            <field name="solvencia_passivo_total" widget="monetary" readonly="1" string="Passivo Total"/>
+                        </group>
+
+                        <group></group>
+
+                    </group>
+
+                    <!-- Índices de Retorno (campos float com widget de porcentagem) -->
+                    <group string="Índices de Retorno" col="3">
+
+                        <!-- ROA -->
+                        <group string="ROA">
+                            <field name="roa"  readonly="1" widget="percentage" string="ROA"/>
+                            <field name="roa_net_income" widget="monetary" readonly="1" string="Lucro Líquido"/>
+                            <field name="roa_total_assets" widget="monetary" readonly="1" string="Ativo Total"/>
+                        </group>
+
+                        <!-- ROI (ganho editável) -->
+                        <group string="ROI">
+                            <field name="roi"  readonly="1" widget="percentage" string="ROI"/>
+                            <field name="roi_gain" widget="monetary" string="Ganho"/>
+                            <field name="roi_investment_cost" widget="monetary" readonly="1" string="Custo do Investimento"/>
+                        </group>
+
+                        <!-- ROE -->
+                        <group string="ROE">
+                            <field name="roe"  readonly="1" widget="percentage" string="ROE"/>
+                            <field name="roe_net_income" widget="monetary" readonly="1" string="Lucro Líquido"/>
+                            <field name="roe_equity" widget="monetary" readonly="1" string="Patrimônio Líquido"/>
+                        </group>
+
+                    </group>
+
+                </sheet>
+
+                <footer>
+                    <button string="Fechar" class="btn-oe_link" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Ação para abrir o wizard -->
+    <record id="action_contabilidade_indicadores_wizard" model="ir.actions.act_window">
+        <field name="name">Indicadores Financeiros</field>
+        <field name="res_model">contabilidade.indicadores.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_contabilidade_indicadores_wizard_form"/>
+        <field name="target">new</field>
+        <field name="context">{}</field>
+    </record>
+
+    <!-- Menu para acessar o wizard (ajuste o parent para o seu menu contábil) -->
+    
+
+</odoo>

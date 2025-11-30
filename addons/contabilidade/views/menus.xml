@@ -26,6 +26,11 @@
     <menuitem id="menu_dre_root" name="DRE" sequence="25" web_icon="contabilidade,static/description/dre.png"/>
         <menuitem id="menu_dre" name="DRE - Demonstrativo" parent="menu_dre_root" action="action_contabilidade_dre" sequence="25"/>
 
+    
+    <!-- Menu Indicadores -->
+    <menuitem id="menu_indicadores_root" name="Indicadores" sequence="30" web_icon="contabilidade,static/description/indicadores.png"/>
+        <menuitem id="menu_indicadores" name="Indicadores" parent="menu_indicadores_root" action="action_contabilidade_indicadores_wizard" sequence="30"/>
+
 
 
     <!-- Oculta os menus padrões para usuários comuns -->

@@ -3,13 +3,47 @@ from odoo.tools.float_utils import float_is_zero
 from dateutil.relativedelta import relativedelta
 from odoo.exceptions import ValidationError
 
+MONTH_SELECTION = [
+    ('1', 'Janeiro'),
+    ('2', 'Fevereiro'),
+    ('3', 'Março'),
+    ('4', 'Abril'),
+    ('5', 'Maio'),
+    ('6', 'Junho'),
+    ('7', 'Julho'),
+    ('8', 'Agosto'),
+    ('9', 'Setembro'),
+    ('10', 'Outubro'),
+    ('11', 'Novembro'),
+    ('12', 'Dezembro'),
+]
 
 class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
     _name = 'contabilidade.balanco.patrimonial.wizard'
     _description = 'Balanço Patrimonial (análise vertical e horizontal)'
 
-    date_recent               = fields.Date(string='Recente', required=True, default=lambda self: fields.Date.context_today(self))
-    date_previous             = fields.Date(string='Anterior', required=True, default=lambda self: fields.Date.context_today(self) - relativedelta(months=1))
+    month_recent = fields.Selection(
+        selection=MONTH_SELECTION,
+        string='Mês 2', required=True, default=lambda self: str(fields.Date.context_today(self).month)
+    )
+    year_recent = fields.Selection(
+        selection=lambda self: self.get_years(),
+        string='Ano 2', required=True, default=lambda self: str(fields.Date.context_today(self).year)
+    )
+    month_previous = fields.Selection(
+        selection=MONTH_SELECTION,
+        string='Mês 1', required=True, default=lambda self: str((fields.Date.context_today(self) - relativedelta(months=1)).month)
+    )
+    year_previous = fields.Selection(
+        selection=lambda self: self.get_years(),
+        string='Ano 1', required=True, default=lambda self: str((fields.Date.context_today(self) - relativedelta(months=1)).year)
+    )
+
+    @staticmethod
+    def get_years():
+        return [(str(i), str(i)) for i in range(2000, 2100)]
+
+
     show_zero_accounts        = fields.Boolean(string='Mostrar contas zeradas', default=False)
     currency_id               = fields.Many2one('res.currency', string='Currency', required=True, default=lambda self: self.env.company.currency_id)
     line_ids                  = fields.One2many('contabilidade.balanco.patrimonial.line', 'wizard_id', string='Lines', readonly=True, compute='_compute_balanco')
@@ -18,28 +52,28 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
     total_passivo_pl_recent   = fields.Monetary(string='Total P Recente', currency_field='currency_id', compute='_compute_balanco')
     total_passivo_pl_previous = fields.Monetary(string='Total P Anterior', currency_field='currency_id', compute='_compute_balanco')
 
-    @api.onchange('date_recent', 'date_previous', 'show_zero_accounts')
+    @api.onchange('month_recent', 'year_recent', 'month_previous', 'year_previous', 'show_zero_accounts')
     def _onchange_filters(self):
         self._compute_balanco()
 
-    @api.constrains('date_previous', 'date_recent')
-    def _check_dates(self):
-        for wizard in self:
-            if wizard.date_previous and wizard.date_recent \
-               and wizard.date_previous > wizard.date_recent:
-                raise ValidationError("A data anterior deve ser igual ou anterior à data mais recente.")
-
-    @api.onchange('date_previous', 'date_recent')
+    @api.onchange('month_previous', 'year_previous', 'month_recent', 'year_recent')
     def _onchange_dates(self):
         for wizard in self:
-            if wizard.date_previous and wizard.date_recent and wizard.date_previous > wizard.date_recent:
-                wizard.date_previous = wizard.date_recent
+            if (
+                wizard.month_previous
+                and wizard.year_previous
+                and wizard.month_recent
+                and wizard.year_recent
+                and wizard.month_previous == wizard.month_recent
+                and wizard.year_previous == wizard.year_recent
+            ):
                 return {
                     'warning': {
-                        'title': "Selção de datas inválida!",
-                        'message': "A data anterior não pode ser posterior à data recente.",
+                        'title': "Meses iguais selecionados",
+                        'message': "Mês 1 e Mês 2 estão iguais. A análise horizontal ficará zerada.",
                     }
                 }
+
 
     def _map_area_from_group(self, grupo_contabil: str) -> str:
         """Map plano de contas group -> área contábil (para sinal)."""
@@ -58,7 +92,7 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
         return credit_sum - debit_sum
 
 
-    @api.depends('date_recent', 'date_previous', 'show_zero_accounts', 'currency_id')
+    @api.depends('month_recent', 'year_recent', 'month_previous', 'year_previous', 'show_zero_accounts', 'currency_id')
     def _compute_balanco(self):
         Diario = self.env['contabilidade.livro.diario'].sudo()
         Account = self.env['contabilidade.contas'].sudo()
@@ -99,14 +133,18 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
             wizard.total_passivo_pl_recent = 0.0
             wizard.total_passivo_pl_previous = 0.0
 
-            if not wizard.date_recent or not wizard.date_previous:
+            if not wizard.month_recent or not wizard.year_recent or not wizard.month_previous or not wizard.year_previous:
                 continue
 
             currency = wizard.currency_id
             precision = currency.rounding
 
-            date_recent = wizard.date_recent
-            date_previous = wizard.date_previous
+            # Converte mês/ano para datas (último dia de cada mês selecionado)
+            from datetime import date, timedelta
+            base_date_recent = date(int(wizard.year_recent), int(wizard.month_recent), 1)
+            base_date_previous = date(int(wizard.year_previous), int(wizard.month_previous), 1)
+            date_recent = (base_date_recent + relativedelta(months=1)) - timedelta(days=1)
+            date_previous = (base_date_previous + relativedelta(months=1)) - timedelta(days=1)
 
             # --- movimentos até cada data (posição) ---
             user_field = 'user_id' if 'user_id' in Diario._fields else 'create_uid'
@@ -245,7 +283,6 @@ class ContabilidadeBalancoPatrimonialWizard(models.TransientModel):
                     'saldo_recent': resultado_recent,
                     'saldo_previous': resultado_previous,
                 })
-
 
             def percent(value, denom):
                 if float_is_zero(denom, precision_rounding=precision):
@@ -409,10 +446,10 @@ class ContabilidadeBalancoPatrimonialLine(models.TransientModel):
     name           = fields.Char(string='Conta', required=True)
     user_id        = fields.Many2one('res.users', string='Usuário', default=lambda self: self.env.user)
     currency_id    = fields.Many2one('res.currency', string='Currency', required=True)
-    saldo_recent   = fields.Monetary(string='Valor Recente', currency_field='currency_id')
-    saldo_previous = fields.Monetary(string='Valor Anterior', currency_field='currency_id')
-    av_recent      = fields.Float(string='AV% Recente')
-    av_previous    = fields.Float(string='AV% Anterior')
+    saldo_recent   = fields.Monetary(string='Valor Mês 2', currency_field='currency_id')
+    saldo_previous = fields.Monetary(string='Valor Mês 1', currency_field='currency_id')
+    av_recent      = fields.Float(string='AV% Mês 2')
+    av_previous    = fields.Float(string='AV% Mês 1')
     ah_percent     = fields.Float(string='AH%')
     codigo         = fields.Char(string='Code', related='conta_id.codigo', store=False)
     grupo_contabil = fields.Selection(string='Grupo Contábil', related='conta_id.grupo_contabil', store=False)

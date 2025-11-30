@@ -4,3 +4,4 @@ from . import contabilidade_livro_razao
 from . import contabilidade_balanco_patrimonial
 from . import res_users
 from . import contabilidade_dre
+from . import contabilidade_indicadores
