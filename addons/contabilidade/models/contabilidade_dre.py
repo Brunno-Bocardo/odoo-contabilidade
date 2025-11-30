@@ -3,15 +3,43 @@ import datetime
 import calendar
 
 
+MONTH_SELECTION = [
+    ('1', 'Janeiro'),
+    ('2', 'Fevereiro'),
+    ('3', 'Março'),
+    ('4', 'Abril'),
+    ('5', 'Maio'),
+    ('6', 'Junho'),
+    ('7', 'Julho'),
+    ('8', 'Agosto'),
+    ('9', 'Setembro'),
+    ('10', 'Outubro'),
+    ('11', 'Novembro'),
+    ('12', 'Dezembro'),
+]
+
+
 class ContabilidadeDreWizard(models.TransientModel):
     _name = 'contabilidade.dre.wizard'
     _description = 'Demonstração do Resultado do Exercício (DRE) - Wizard'
 
-    period = fields.Date(
-        string='Período (mês)',
+    month = fields.Selection(
+        selection=MONTH_SELECTION,
+        string='Mês',
         required=True,
-        default=lambda self: fields.Date.to_string(datetime.date.today().replace(day=1)),
+        default=lambda self: str(fields.Date.context_today(self).month),
     )
+    year = fields.Selection(
+        selection=lambda self: self.get_years(),
+        string='Ano',
+        required=True,
+        default=lambda self: str(fields.Date.context_today(self).year),
+    )
+
+    @staticmethod
+    def get_years():
+        return [(str(i), str(i)) for i in range(2000, 2100)]
+
     show_zero_accounts = fields.Boolean(string='Mostrar contas zeradas', default=False)
     currency_id = fields.Many2one('res.currency', string='Currency', required=True, default=lambda self: self.env.company.currency_id)
 
@@ -39,12 +67,12 @@ class ContabilidadeDreWizard(models.TransientModel):
 
     lucro_liquido = fields.Monetary(string='Lucro Líquido', currency_field='currency_id', compute='_compute_dre')
 
-    @api.onchange('period', 'show_zero_accounts')
+    @api.onchange('month', 'year', 'show_zero_accounts')
     def _onchange_filters(self):
         self._compute_dre()
         return None
 
-    @api.depends('period', 'show_zero_accounts', 'currency_id')
+    @api.depends('month', 'year', 'show_zero_accounts', 'currency_id')
     def _compute_dre(self):
         Diario = self.env['contabilidade.livro.diario'].sudo()
         Account = self.env['contabilidade.contas'].sudo()
@@ -68,19 +96,15 @@ class ContabilidadeDreWizard(models.TransientModel):
             wiz.despesa_financeira = 0.0
             wiz.lucro_liquido = 0.0
 
-            if not wiz.period:
+            if not wiz.month or not wiz.year:
                 continue
 
-            # Turn the period selected (first-day date) into start and end date of that month
-            try:
-                per = fields.Date.from_string(wiz.period)
-            except Exception:
-                per = None
-            if not per:
-                continue
-            date_from = per.replace(day=1)
-            last_day = calendar.monthrange(per.year, per.month)[1]
-            date_to = per.replace(day=last_day)
+            # Constrói date_from e date_to a partir de mês/ano selecionados
+            year_int = int(wiz.year)
+            month_int = int(wiz.month)
+            date_from = datetime.date(year_int, month_int, 1)
+            last_day = calendar.monthrange(year_int, month_int)[1]
+            date_to = datetime.date(year_int, month_int, last_day)
 
             user_field = 'user_id' if 'user_id' in Diario._fields else 'create_uid'
             domain_base = [(user_field, '=', self.env.user.id)]
@@ -195,7 +219,6 @@ class ContabilidadeDreWizard(models.TransientModel):
                 values.setdefault('sequence', seq)
                 values.setdefault('currency_id', wiz.currency_id.id)
                 line_cmds.append(Command.create(values))
-
 
             # 1) RECEITAS (exibe detalhes e total líquido)
             add({'name': 'RECEITAS', 'display_type': 'section', 'valor': wiz.receita_liquida})
