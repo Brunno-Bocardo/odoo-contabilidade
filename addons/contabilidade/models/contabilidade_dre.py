@@ -99,7 +99,6 @@ class ContabilidadeDreWizard(models.TransientModel):
             if not wiz.month or not wiz.year:
                 continue
 
-            # Constrói date_from e date_to a partir de mês/ano selecionados
             year_int = int(wiz.year)
             month_int = int(wiz.month)
             date_from = datetime.date(year_int, month_int, 1)
@@ -168,11 +167,27 @@ class ContabilidadeDreWizard(models.TransientModel):
 
             receita_bruta_val = sum(credit_map.get(acc.id, 0.0) for acc in receita_accounts)
 
-            imposto_accounts = Account.search([('conta', 'ilike', 'impost')])
-            impostos_val = sum(credit_map.get(acc.id, 0.0) - debit_map.get(acc.id, 0.0) for acc in imposto_accounts)
+            impostos_sobre_venda_accounts = Account.search([
+                ('conta', 'ilike', 'icms'), 
+                ('conta', 'ilike', 'pis'), 
+                ('conta', 'ilike', 'cofins'), 
+                ('conta', 'ilike', 'iss')
+            ])
+            impostos_sobre_venda_val = sum(credit_map.get(acc.id, 0.0) - debit_map.get(acc.id, 0.0) for acc in impostos_sobre_venda_accounts)
 
             devolucao_accounts = Account.search([('conta', 'ilike', 'devol')])
             devolucoes_val = sum(debit_map.get(acc.id, 0.0) - credit_map.get(acc.id, 0.0) for acc in devolucao_accounts)
+
+            irpj_csll_accounts = Account.search([
+                ('conta', 'ilike', 'irpj'),
+                ('conta', 'ilike', 'csll')
+            ])
+            despesa_irpj_val = sum(debit_map.get(acc.id, 0.0) - credit_map.get(acc.id, 0.0) for acc in irpj_csll_accounts)
+
+            wiz.receita_bruta = wiz.currency_id.round(receita_bruta_val)
+            wiz.impostos_sobre_venda = wiz.currency_id.round(impostos_sobre_venda_val)
+            wiz.devolucoes = wiz.currency_id.round(devolucoes_val)
+            wiz.receita_liquida = wiz.currency_id.round(receita_bruta_val - impostos_sobre_venda_val - devolucoes_val)
 
             cogs_accounts = (
                 Account.search([('conta', 'ilike', 'cmv')])
@@ -192,23 +207,23 @@ class ContabilidadeDreWizard(models.TransientModel):
             despesas_operacionais_accounts = [a for a in all_despesa_accounts if a.id not in [x.id for x in cogs_accounts + despesa_financeira_accounts]]
             despesas_operacionais_val = sum(debit_map.get(acc.id, 0.0) - credit_map.get(acc.id, 0.0) for acc in despesas_operacionais_accounts)
 
-            wiz.receita_bruta = wiz.currency_id.round(receita_bruta_val)
-            wiz.impostos_sobre_venda = wiz.currency_id.round(impostos_val)
-            wiz.devolucoes = wiz.currency_id.round(devolucoes_val)
-            wiz.receita_liquida = wiz.currency_id.round((receita_bruta_val or 0.0) - (impostos_val or 0.0) - (devolucoes_val or 0.0))
+            despesas_operacionais_val += despesa_irpj_val
+            wiz.despesas_operacionais = wiz.currency_id.round(despesas_operacionais_val)
 
             wiz.custo_inicial = wiz.currency_id.round(custo_inicial_val)
             wiz.custo_atual = wiz.currency_id.round(custo_atual_val)
             wiz.lucro_bruto = wiz.currency_id.round((wiz.receita_liquida or 0.0) - (custo_atual_val or 0.0))
 
-            wiz.despesas_operacionais = wiz.currency_id.round(despesas_operacionais_val)
-
-            wiz.resultado_antes_financeiro = wiz.currency_id.round((wiz.lucro_bruto or 0.0) - (despesas_operacionais_val or 0.0))
+            wiz.resultado_antes_financeiro = wiz.currency_id.round(
+                (wiz.lucro_bruto or 0.0) - (wiz.despesas_operacionais or 0.0)
+            )
 
             wiz.receita_financeira = wiz.currency_id.round(receita_financeira_val)
             wiz.despesa_financeira = wiz.currency_id.round(despesa_financeira_val)
 
-            wiz.lucro_liquido = wiz.currency_id.round((wiz.resultado_antes_financeiro or 0.0) + (wiz.receita_financeira or 0.0) - (wiz.despesa_financeira or 0.0))
+            wiz.lucro_liquido = wiz.currency_id.round(
+                (wiz.resultado_antes_financeiro or 0.0) + (wiz.receita_financeira or 0.0) - (wiz.despesa_financeira or 0.0)
+            )
 
             seq = 0
             line_cmds = []
@@ -220,62 +235,38 @@ class ContabilidadeDreWizard(models.TransientModel):
                 values.setdefault('currency_id', wiz.currency_id.id)
                 line_cmds.append(Command.create(values))
 
-            # 1) RECEITAS (exibe detalhes e total líquido)
             add({'name': 'RECEITAS', 'display_type': 'section', 'valor': wiz.receita_liquida})
-
-            # show receita_bruta, impostos, devoluções and receita_liquida breakdown
             add({'name': 'Receita Bruta', 'display_type': 'line', 'valor': wiz.receita_bruta})
             add({'name': '(-) Impostos sobre Venda', 'display_type': 'line', 'valor': -wiz.impostos_sobre_venda})
             add({'name': '(-) Devoluções', 'display_type': 'line', 'valor': -wiz.devolucoes})
             add({'name': 'TOTAL - Receita Líquida', 'display_type': 'subtotal', 'valor': wiz.receita_liquida})
 
-            # 2) CUSTOS (CMV/CPV/CSV) -> Lucro Bruto
             add({'name': '(-) CUSTOS (CMV / CPV / CSV)', 'display_type': 'section', 'valor': -wiz.custo_atual})
             for acc in cogs_accounts:
                 val = debit_map.get(acc.id, 0.0) - credit_map.get(acc.id, 0.0)
                 if not wiz.show_zero_accounts and abs(val) < 1e-12:
                     continue
-                add({
-                    'conta_id': acc.id,
-                    'name': acc.name,
-                    'display_type': 'line',
-                    'valor': wiz.currency_id.round(-val),
-                })
+                add({'conta_id': acc.id, 'name': acc.name, 'display_type': 'line', 'valor': wiz.currency_id.round(-val)})
             add({'name': 'TOTAL CUSTOS', 'display_type': 'subtotal', 'valor': -wiz.custo_atual})
-
-            # Lucro Bruto = Receita Líquida - Custos
             add({'name': 'LUCRO BRUTO', 'display_type': 'section', 'valor': wiz.lucro_bruto})
 
-            # 3) DESPESAS OPERACIONAIS -> Resultado antes financeiro
             add({'name': '(-) DESPESAS OPERACIONAIS', 'display_type': 'section', 'valor': -wiz.despesas_operacionais})
             for acc in despesas_operacionais_accounts:
                 val = debit_map.get(acc.id, 0.0) - credit_map.get(acc.id, 0.0)
                 if not wiz.show_zero_accounts and abs(val) < 1e-12:
                     continue
-                add({
-                    'conta_id': acc.id,
-                    'name': acc.name,
-                    'display_type': 'line',
-                    'valor': wiz.currency_id.round(-val),
-                })
+                add({'conta_id': acc.id, 'name': acc.name, 'display_type': 'line', 'valor': wiz.currency_id.round(-val)})
             add({'name': 'TOTAL DESPESAS OPERACIONAIS', 'display_type': 'subtotal', 'valor': -wiz.despesas_operacionais})
 
-            # Resultado antes das receitas/despesas financeiras
             add({'name': 'RESULTADO ANTES FINANCEIRO', 'display_type': 'section', 'valor': wiz.resultado_antes_financeiro})
 
-            # 4) RESULTADOS FINANCEIROS
             if receita_financeira_accounts:
                 add({'name': 'RECEITA FINANCEIRA', 'display_type': 'section', 'valor': wiz.receita_financeira})
                 for acc in receita_financeira_accounts:
                     val = credit_map.get(acc.id, 0.0) - debit_map.get(acc.id, 0.0)
                     if not wiz.show_zero_accounts and abs(val) < 1e-12:
                         continue
-                    add({
-                        'conta_id': acc.id,
-                        'name': acc.name,
-                        'display_type': 'line',
-                        'valor': wiz.currency_id.round(val),
-                    })
+                    add({'conta_id': acc.id, 'name': acc.name, 'display_type': 'line', 'valor': wiz.currency_id.round(val)})
 
             if despesa_financeira_accounts:
                 add({'name': 'DESPESA FINANCEIRA', 'display_type': 'section', 'valor': -wiz.despesa_financeira})
@@ -283,17 +274,12 @@ class ContabilidadeDreWizard(models.TransientModel):
                     val = debit_map.get(acc.id, 0.0) - credit_map.get(acc.id, 0.0)
                     if not wiz.show_zero_accounts and abs(val) < 1e-12:
                         continue
-                    add({
-                        'conta_id': acc.id,
-                        'name': acc.name,
-                        'display_type': 'line',
-                        'valor': wiz.currency_id.round(-val),
-                    })
+                    add({'conta_id': acc.id, 'name': acc.name, 'display_type': 'line', 'valor': wiz.currency_id.round(-val)})
 
-            # 5) LUCRO LÍQUIDO final
             add({'name': 'LUCRO LÍQUIDO', 'display_type': 'section', 'valor': wiz.lucro_liquido})
 
             wiz.line_ids = line_cmds
+
 
 
 class ContabilidadeDreLine(models.TransientModel):
