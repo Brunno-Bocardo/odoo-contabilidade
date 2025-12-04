@@ -216,6 +216,17 @@ class ContabilidadeIndicadoresWizard(models.TransientModel):
             'passivo_nao_circulante',
             'patrimonio',
         ]
+        ALL_GROUPS = BS_GROUPS + ['apuracao', 'despesa', 'despesas', 'receita', 'receitas']
+        PREFIX_MAP = {
+            '1': 'circulante',
+            '2': 'nao_circulante',
+            '3': 'passivo_circulante',
+            '4': 'passivo_nao_circulante',
+            '5': 'patrimonio',
+            '6': 'despesa',
+            '7': 'receitas',
+            '8': 'apuracao',
+        }
 
         for wizard in self:
             currency = wizard.currency_id or self.env.company.currency_id
@@ -264,28 +275,61 @@ class ContabilidadeIndicadoresWizard(models.TransientModel):
                     return 0.0
                 return num / denom
 
+            def _resolve_group(acc):
+                code = acc.codigo or ''
+                prefix = code.split('.')[0] if code else ''
+                prefix_group = PREFIX_MAP.get(prefix)
+                if acc.grupo_contabil in ALL_GROUPS:
+                    if prefix_group and prefix_group != acc.grupo_contabil and prefix_group in BS_GROUPS + ['apuracao']:
+                        return prefix_group
+                    return acc.grupo_contabil
+                return prefix_group
+
+            def _is_temp_result(acc, resolved_group):
+                name_lower = (acc.conta or acc.name or '').lower()
+                return resolved_group == 'apuracao' or 'apurac' in name_lower or name_lower.startswith('are')
+
+            def _natural_balance(acc, debit, credit, resolved_group=None):
+                group = resolved_group or _resolve_group(acc)
+                if group in ('circulante', 'nao_circulante'):
+                    return (debit or 0.0) - (credit or 0.0)
+                elif group in ('passivo_circulante', 'passivo_nao_circulante', 'patrimonio'):
+                    return (credit or 0.0) - (debit or 0.0)
+                return (debit or 0.0) - (credit or 0.0)
+
+            def _build_maps(moves):
+                debit_map = {}
+                credit_map = {}
+                for move in moves:
+                    if move.conta_debito_id:
+                        debit_map[move.conta_debito_id.id] = debit_map.get(move.conta_debito_id.id, 0.0) + (move.valor or 0.0)
+                    if move.conta_credito_id:
+                        credit_map[move.conta_credito_id.id] = credit_map.get(move.conta_credito_id.id, 0.0) + (move.valor or 0.0)
+                return debit_map, credit_map
+
             # -----------------------------------------------------------------
             # Build debit/credit maps for balance sheet position (<= cutoff)
             # -----------------------------------------------------------------
             user_field = 'user_id' if 'user_id' in Diario._fields else 'create_uid'
-            domain_base = [(user_field, '=', self.env.user.id)]
+            domain_base = ['|', '|', (user_field, '=', self.env.user.id), (user_field, '=', False), (user_field, '=', 1)]
 
             moves_bs = Diario.search([
                 *domain_base,
                 ('data', '<=', date_cutoff),
             ])
 
-            debit_bs = {}
-            credit_bs = {}
-            for move in moves_bs:
-                if move.conta_debito_id:
-                    debit_bs[move.conta_debito_id.id] = debit_bs.get(move.conta_debito_id.id, 0.0) + (move.valor or 0.0)
-                if move.conta_credito_id:
-                    credit_bs[move.conta_credito_id.id] = credit_bs.get(move.conta_credito_id.id, 0.0) + (move.valor or 0.0)
+            moves_month = Diario.search([
+                *domain_base,
+                ('data', '>=', base_date),
+                ('data', '<=', date_cutoff),
+            ])
+
+            debit_bs, credit_bs = _build_maps(moves_bs)
+            debit_month, credit_month = _build_maps(moves_month)
 
             # All balance sheet accounts (same grouping idea as your Balanço)
             balance_accounts = Account.search([
-                ('grupo_contabil', 'in', BS_GROUPS),
+                ('grupo_contabil', 'in', BS_GROUPS + ['apuracao']),
                 '|', '|',
                 ('user_id', '=', self.env.user.id),
                 ('user_id', '=', False),
@@ -320,13 +364,7 @@ class ContabilidadeIndicadoresWizard(models.TransientModel):
                 ('data', '<=', date_cutoff),
             ])
 
-            debit_dre = {}
-            credit_dre = {}
-            for move in moves_dre:
-                if move.conta_debito_id:
-                    debit_dre[move.conta_debito_id.id] = debit_dre.get(move.conta_debito_id.id, 0.0) + (move.valor or 0.0)
-                if move.conta_credito_id:
-                    credit_dre[move.conta_credito_id.id] = credit_dre.get(move.conta_credito_id.id, 0.0) + (move.valor or 0.0)
+            debit_dre, credit_dre = _build_maps(moves_dre)
 
             total_receita = sum(
                 (credit_dre.get(acc.id, 0.0) - debit_dre.get(acc.id, 0.0))
@@ -344,18 +382,6 @@ class ContabilidadeIndicadoresWizard(models.TransientModel):
             # -----------------------------------------------------------------
             # Walk through balance accounts once and aggregate everything
             # -----------------------------------------------------------------
-            def _natural_balance(acc, debit, credit):
-                """Compute natural balance by group (assets vs liabilities)."""
-                group = acc.grupo_contabil
-                if group in ('circulante', 'nao_circulante'):
-                    # Assets: debit - credit
-                    return (debit or 0.0) - (credit or 0.0)
-                elif group in ('passivo_circulante', 'passivo_nao_circulante', 'patrimonio'):
-                    # Liabilities & equity: credit - debit
-                    return (credit or 0.0) - (debit or 0.0)
-                # fallback
-                return (debit or 0.0) - (credit or 0.0)
-
             total_ativo_circ = 0.0
             total_ativo_nao_circ = 0.0
             total_passivo_circ = 0.0
@@ -367,29 +393,33 @@ class ContabilidadeIndicadoresWizard(models.TransientModel):
             total_rlp = 0.0              # realizable long-term
 
             for acc in balance_accounts:
+                group = _resolve_group(acc)
+                if group not in BS_GROUPS or _is_temp_result(acc, group):
+                    continue
+
                 debit_val = debit_bs.get(acc.id, 0.0)
                 credit_val = credit_bs.get(acc.id, 0.0)
-                balance = _natural_balance(acc, debit_val, credit_val)
+                balance = _natural_balance(acc, debit_val, credit_val, group)
 
-                group = acc.grupo_contabil
-                name_lower = (acc.conta or '').lower()
+                name_lower = (acc.conta or acc.name or '').lower()
+                code_val = acc.codigo or ''
 
                 if group == 'circulante':
                     total_ativo_circ += balance
 
                     # "Disponível": basic heuristic based on account name
-                    if any(token in name_lower for token in ['caixa', 'banco', 'disponi', 'aplic']):
+                    if code_val.startswith(('1.0.1', '1.0.2')) or any(token in name_lower for token in ['caixa', 'banco', 'disponi', 'aplic']):
                         total_disponivel += balance
 
                     # Inventory accounts (Estoque)
-                    if any(token in name_lower for token in ['estoque', 'mercadoria']):
+                    if code_val.startswith('1.0.5') or any(token in name_lower for token in ['estoque', 'mercadoria']):
                         total_estoque += balance
 
                 elif group == 'nao_circulante':
                     total_ativo_nao_circ += balance
 
                     # Long-term receivables (RLP)
-                    if getattr(acc, 'subgrupo1', False) == 'realizavel':
+                    if getattr(acc, 'subgrupo1', False) == 'realizavel' or code_val.startswith('2.0.'):
                         total_rlp += balance
 
                 elif group == 'passivo_circulante':
@@ -433,6 +463,37 @@ class ContabilidadeIndicadoresWizard(models.TransientModel):
             wizard.solvencia_ativo_total = currency.round(total_ativo)
             wizard.solvencia_passivo_total = currency.round(total_passivo_exigivel)
             wizard.solvencia_geral = _ratio(total_ativo, total_passivo_exigivel)
+
+            # -----------------------------------------------------------------
+            # ROI: suggest investment cost based on capex/investments in month
+            # -----------------------------------------------------------------
+            investment_cost = 0.0
+            for acc in balance_accounts:
+                group = _resolve_group(acc)
+                if group not in ('circulante', 'nao_circulante') or _is_temp_result(acc, group):
+                    continue
+
+                name_lower = (acc.conta or acc.name or '').lower()
+                is_investment = (
+                    group == 'nao_circulante'
+                    or getattr(acc, 'subgrupo1', False) in ('investimentos', 'imobilizado', 'intangivel')
+                    or 'invest' in name_lower
+                )
+                if not is_investment:
+                    continue
+
+                month_delta = _natural_balance(
+                    acc,
+                    debit_month.get(acc.id, 0.0),
+                    credit_month.get(acc.id, 0.0),
+                    group,
+                )
+                if month_delta > 0:
+                    investment_cost += month_delta
+
+            investment_cost = currency.round(investment_cost)
+            if float_is_zero(wizard.roi_investment_cost, precision_rounding=precision):
+                wizard.roi_investment_cost = investment_cost
 
             # -----------------------------------------------------------------
             # ROA and ROE

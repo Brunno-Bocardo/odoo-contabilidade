@@ -78,7 +78,7 @@
                         <group string="ROI">
                             <field name="roi"  readonly="1" widget="percentage" string="ROI"/>
                             <field name="roi_gain" widget="monetary" string="Ganho"/>
-                            <field name="roi_investment_cost" widget="monetary" readonly="1" string="Custo do Investimento"/>
+                            <field name="roi_investment_cost" widget="monetary" string="Custo do Investimento"/>
                         </group>
 
                         <!-- ROE -->
