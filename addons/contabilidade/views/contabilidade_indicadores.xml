@@ -27,35 +27,35 @@
 
                         <!-- Liquidez Imediata -->
                         <group string="Imediata">
-                            <field name="liq_imediata" widget="percentage" readonly="1" string="Imediata"/>
+                            <field name="liq_imediata" readonly="1" string="Imediata"/>
                             <field name="liq_imediata_disponivel" widget="monetary" readonly="1" string="Disponível"/>
                             <field name="liq_imediata_passivo_circ" widget="monetary" readonly="1" string="Passivo Circulante"/>
                         </group>
 
                         <!-- Liquidez Seca -->
                         <group string="Seca">
-                            <field name="liq_seca" widget="percentage" readonly="1" string="Seca"/>
+                            <field name="liq_seca" readonly="1" string="Seca"/>
                             <field name="liq_seca_ativo_sem_estoque" widget="monetary" readonly="1" string="Ativo Cisculante - Estoque"/>
                             <field name="liq_seca_passivo_circ" widget="monetary" readonly="1" string="Passivo Circulante"/>
                         </group>
 
                         <!-- Liquidez Corrente -->
                         <group string="Liquidez Corrente">
-                            <field name="liq_corrente" widget="percentage" readonly="1" string="Corrente"/>
+                            <field name="liq_corrente" readonly="1" string="Corrente"/>
                             <field name="liq_corrente_ativo_circ" widget="monetary" readonly="1" string="Ativo Circulante"/>
                             <field name="liq_corrente_passivo_circ" widget="monetary" readonly="1" string="Passivo Circulante"/>
                         </group>
 
                         <!-- Liquidez Geral -->
                         <group string="Liquidez Geral">
-                            <field name="liq_geral" widget="percentage" readonly="1" string="Geral"/>
+                            <field name="liq_geral" readonly="1" string="Geral"/>
                             <field name="liq_geral_ativo_circ_rlp" widget="monetary" readonly="1" string="Ativo Circulante + RLP"/>
                             <field name="liq_geral_passivo_total" widget="monetary" readonly="1" string="Passivo Total"/>
                         </group>
 
                         <!-- Solvência Geral -->
                         <group string="Solvência Geral">
-                            <field name="solvencia_geral" widget="percentage" readonly="1" string="Solvência Geral"/>
+                            <field name="solvencia_geral" readonly="1" string="Solvência Geral"/>
                             <field name="solvencia_ativo_total" widget="monetary" readonly="1" string="Ativo Total"/>
                             <field name="solvencia_passivo_total" widget="monetary" readonly="1" string="Passivo Total"/>
                         </group>

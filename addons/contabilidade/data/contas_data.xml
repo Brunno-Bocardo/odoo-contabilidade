@@ -117,6 +117,33 @@
             <field name="user_id"></field>
         </record>
 
+        <record id="conta_investimentos" model="contabilidade.contas">
+            <field name="conta">Investimentos</field>
+            <field name="codigo">2.2.3</field>
+            <field name="grupo_contabil">nao_circulante</field>
+            <field name="subgrupo1">investimentos</field>
+            <field name="name">2.2.3 - Investimentos</field>
+            <field name="user_id"></field>
+        </record>
+
+        <record id="conta_veiculos" model="contabilidade.contas">
+            <field name="conta">Veículos</field>
+            <field name="codigo">2.2.4</field>
+            <field name="grupo_contabil">nao_circulante</field>
+            <field name="subgrupo1">imobilizado</field>
+            <field name="name">2.2.4 - Veículos</field>
+            <field name="user_id"></field>
+        </record>
+
+        <record id="conta_moveis_utensilios" model="contabilidade.contas">
+            <field name="conta">Móveis e Utensílios</field>
+            <field name="codigo">2.2.4</field>
+            <field name="grupo_contabil">nao_circulante</field>
+            <field name="subgrupo1">imobilizado</field>
+            <field name="name">2.2.2 - Móveis e Utensílios</field>
+            <field name="user_id"></field>
+        </record>
+
         <record id="conta_depreciacao" model="contabilidade.contas">
             <field name="conta">Depreciação Acumulada</field>
             <field name="codigo">2.2.2</field>
@@ -179,6 +206,22 @@
             <field name="codigo">3.0.5</field>
             <field name="grupo_contabil">passivo_circulante</field>
             <field name="name">3.0.5 - Contas a Pagar</field>
+            <field name="user_id"></field>
+        </record>
+
+        <record id="conta_are" model="contabilidade.contas">
+            <field name="conta">ARE</field>
+            <field name="codigo">3.0.6</field>
+            <field name="grupo_contabil">passivo_circulante</field>
+            <field name="name">3.0.6 - ARE</field>
+            <field name="user_id"></field>
+        </record>
+
+        <record id="conta_impostos_a_pagar" model="contabilidade.contas">
+            <field name="conta">Impostos a Pagar</field>
+            <field name="codigo">3.0.7</field>
+            <field name="grupo_contabil">passivo_circulante</field>
+            <field name="name">3.0.7 - Impostos a Pagar</field>
             <field name="user_id"></field>
         </record>
 
@@ -358,6 +401,14 @@
             <field name="codigo">6.0.11</field>
             <field name="grupo_contabil">despesa</field>
             <field name="name">6.0.11 - Despesa com IRPJ</field>
+            <field name="user_id"></field>
+        </record>
+
+        <record id="conta_despesa_irpj_6012" model="contabilidade.contas">
+            <field name="conta">Despesa com IRPJ</field>
+            <field name="codigo">6.0.12</field>
+            <field name="grupo_contabil">despesa</field>
+            <field name="name">6.0.12 - Despesa com IRPJ</field>
             <field name="user_id"></field>
         </record>
     </data>
